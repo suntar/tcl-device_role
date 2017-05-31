@@ -28,10 +28,9 @@ namespace eval device_role::power_supply {
 
   ## Interface class. All power_supply driver classes are children of it
   itcl::class interface {
-    proc id_regex {} {}; ## return regexp for *IDN? response used to detect device model
+    inherit device_role::base_interface
 
     # variables which should be filled by driver:
-    variable dev; ## Device handler (see Device library)
     public variable max_i; # max current
     public variable min_i; # min current
     public variable max_v; # max voltage
@@ -65,8 +64,5 @@ namespace eval device_role::power_supply {
     #  OC  - overcurent protection triggered
     # ...
     method get_stat {} {};
-
-    method lock {} {$dev lock}
-    method unlock {} {$dev unlock}
   }
 }

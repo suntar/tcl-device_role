@@ -44,6 +44,16 @@ models and can contain any device-specific parameter. For example, one
 can write a "gauge" role driver for a multimeter which can understand
 channels R,V,I for resistance, voltage or current measurements.
 
+#### Locks and logging
+
+Library provides access to locks and logging implemented in Device library.
+Every driver has following commands (see Device library documentation):
+```tcl
+* lock   -- lock the device
+* unlock -- unlock the device
+* set_logfile <f> -- set file for logging
+```
+
 ---
 ## Existing roles:
 
@@ -52,24 +62,21 @@ channels R,V,I for resistance, voltage or current measurements.
 Parameters and commands (see `power_supply/Base.tcl`):
 
 ```tcl
-public variable max_i; # max current
-public variable min_i; # min current
-public variable max_v; # max voltage
-public variable min_v; # min voltage
-public variable min_i_step; # min step in current
-public variable min_v_step; # min step in voltage
+variable max_i; # max current
+variable min_i; # min current
+variable max_v; # max voltage
+variable min_v; # min voltage
+variable min_i_step; # min step in current
+variable min_v_step; # min step in voltage
 
-method set_volt {val}  # set maximum voltage
-method set_curr {val}  # set current
-method set_ovp  {val}  # set/unset overvoltage protaction
-method set_ocp  {val}  # set/unset overcurrent protection
-method get_curr {}     # measure actual value of voltage
-method get_volt {}     # measure actual value of current
-method cc_reset {}     # bring the device into a controlled state in a constant current mode
-method get_stat {}     # get device status (short string to be shown in the user)
-
-method lock {}         # lock the device
-method unlock {}       # unlock the device
+set_volt {val}; # set maximum voltage
+set_curr {val}; # set current
+set_ovp  {val}; # set/unset overvoltage protaction
+set_ocp  {val}; # set/unset overcurrent protection
+get_curr {};    # measure actual value of voltage
+get_volt {};    # measure actual value of current
+cc_reset {};    # bring the device into a controlled state in a constant current mode
+get_stat {};    # get device status (short string to be shown in the user)
 ```
 
 Supported devices:
@@ -83,15 +90,12 @@ Supported devices:
 
 Parameters and commands (see `voltage_supply/Base.tcl`):
 ```tcl
-public variable max_v; # max voltage
-public variable min_v; # min voltage
-public variable min_v_step; # min step in voltage
+variable max_v; # max voltage
+variable min_v; # min voltage
+variable min_v_step; # min step in voltage
 
-method set_volt {val} # set voltage
-method get_volt {}    # get voltage value
-
-method lock {}   # lock the device
-method unlock {} # unlock the device
+set_volt {val}; # set voltage
+get_volt {};    # get voltage value
 ```
 
 Supported devices:
