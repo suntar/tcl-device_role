@@ -108,3 +108,26 @@ Supported devices:
 
 * Keysight 33510B generator (2 channels). Use channels 1 or 2 to select the output.
 
+#### gauge -- a gauge device
+
+Parameters and commands (see `voltage_supply/Base.tcl`):
+```tcl
+get {} {}; # do the measurement, return one or more numbers
+
+get_auto {} {}; # set the range automatically, do the measurement
+
+list_ranges  {} {}; # get list of possible range settings
+list_tconsts {} {}; # get list of possible time constant settings
+
+set_range  {val} {}; # set the range
+set_tconst {val} {}; # set the time constant
+get_range  {} {}; # get current range setting
+get_tconst {} {}; # get current time constant setting
+```
+
+Supported devices:
+
+* SR844 lock-in. Use channels 1 or 2 to select auxilary input,
+use channels XY, RT, FXY, FRT to get X, Y, R, Theta, Frequency
+combinations. Full range/tconst/autorange support.
+

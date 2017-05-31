@@ -8,6 +8,7 @@ set _files {}
 lappend _files role.tcl
 lappend _files {*}[lsort [glob {power_supply/*.tcl} ]]
 lappend _files {*}[lsort [glob {voltage_supply/*.tcl} ]]
+lappend _files {*}[lsort [glob {gauge/*.tcl} ]]
 
 set _pcmd {}
 foreach _f $_files { lappend _pcmd "source [file join $dir $_f.tcl]" }
