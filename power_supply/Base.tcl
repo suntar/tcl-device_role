@@ -5,7 +5,6 @@ package require Itcl
 package require Device
 
 namespace eval device_role::power_supply {
-  variable role "power_supply"
 
   ## Detect device model, create and return driver object for it
   proc create {name chan} {
@@ -38,8 +37,6 @@ namespace eval device_role::power_supply {
     public variable min_i_step; # min step in current
     public variable min_v_step; # min step in voltage
 
-    # Drivers should provide constructor with "device" and "channel" parameters
-    constructor {} {}
     # methods which should be defined by driver:
     method set_volt {val} {}; # set maximum voltage
     method set_curr {val} {}; # set current

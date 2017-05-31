@@ -34,8 +34,6 @@ namespace eval device_role::voltage_supply {
     public variable min_v; # min voltage
     public variable min_v_step; # min step in voltage
 
-    # Drivers should provide constructor with "device" and "channel" parameters
-    constructor {} {}
     # methods which should be defined by driver:
     method set_volt {val} {}; # set maximum voltage
     method get_volt {} {};    # measure actual value of current

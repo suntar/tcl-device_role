@@ -26,8 +26,6 @@ itcl::class device_role::voltage_supply::sr844 {
   }
 
   method set_volt {val} {
-    ## strange! lock-in sets the voltage only if I repeat it twice
-    $dev cmd "AUXO${chan},$val"
     $dev cmd "AUXO${chan},$val"
   }
   method get_volt {} { return [$dev cmd "AUXO?${chan}"] }
