@@ -1,4 +1,4 @@
-# DeviceRole library
+# DeviceRole library -- standardized drivers for devices
 ---
 
 ## Ideology
@@ -26,19 +26,23 @@ capabilities. But in many cases some simple operations are needed, then
 DeviceRole library can be useful. For example, a program for NMR
 measurements can use a device with a "sweeper" role to sweep field (or
 frequency), and a device with "gauge" role to perform some measurements
-and get values. Various power supplies and lock-in amplifiers can be used
-as these "sweeper" and "gauge" devices.
+and get values. Various devices can be used as these "sweeper" and
+"gauge" devices. One device can have many roles.
 
 #### Channels
 
-Sometimes it is useful to specify which "channel" of the device should be used
+Sometimes it is useful to specify which "channel" of the device used
 for the role. It can be done in this way. Consider a lock-in amplifier, which
 has 4 auxilary outputs for setting DC voltage. Consider a device role
 "voltage_supply" which can set voltage on any device. Then you can write
 ```tcl
 set dev [DeviceRole lockin0:2 voltage_supply]
 ```
-This means, that channel 2 of device lockin0 should be used as a "voltage_supply".
+This means, that channel 2 of device lockin0 should be used as a
+"voltage_supply". Note that this channel specification depend on a device
+models and can contain any device-specific parameter. For example, one
+can write a "gauge" role driver for a multimeter which can understand
+channels R,V,I for resistance, voltage or current measurements.
 
 ---
 ## Existing roles:
@@ -67,6 +71,7 @@ method get_stat {}     # get device status (short string to be shown in the user
 
 Supported devices:
 
-* Keysight N6700B frame with N6762A and N6762A modules. Channel and range (for N6762A) can
-  be selected.
+* Keysight N6700B frame with N6762A and N6762A modules. Channel (1-4) and range
+(<channel>H or <channel>L) for N6762A can be selected: ps:1L
+
 * Korad/Velleman/Tenma 72-2550 power supply.
