@@ -14,6 +14,7 @@ itcl::class device_role::power_supply::tenma_72-2550 {
   common id_regexp {^KORADKA6003PV2.0}
 
   constructor {d ch} {
+    if {$ch!={}} {error "channels are not supported for the device $d"}
     set dev $d
     set max_i 3.09
     set min_i 0.0

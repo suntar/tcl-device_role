@@ -3,10 +3,11 @@
 
 set _name    DeviceRole
 set _version 1.0
-set _files   {\
- role\
- power_supply power_supply/keysight_n6700b power_supply/tenma_72-2550\
-}
+
+set _files {}
+lappend _files role.tcl
+lappend _files {*}[lsort [glob {power_supply/*.tcl} ]]
+lappend _files {*}[lsort [glob {voltage_supply/*.tcl} ]]
 
 set _pcmd {}
 foreach _f $_files { lappend _pcmd "source [file join $dir $_f.tcl]" }

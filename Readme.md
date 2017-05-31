@@ -47,9 +47,9 @@ channels R,V,I for resistance, voltage or current measurements.
 ---
 ## Existing roles:
 
-#### power_supply -- a power supply with constant current and constant voltage modes.
+#### power_supply -- a power supply with constant current and constant voltage modes
 
-Parameters and commands (see power_supply.tcl):
+Parameters and commands (see `power_supply/Base.tcl`):
 
 ```tcl
 public variable max_i; # max current
@@ -67,6 +67,9 @@ method get_curr {}     # measure actual value of voltage
 method get_volt {}     # measure actual value of current
 method cc_reset {}     # bring the device into a controlled state in a constant current mode
 method get_stat {}     # get device status (short string to be shown in the user)
+
+method lock {}         # lock the device
+method unlock {}       # unlock the device
 ```
 
 Supported devices:
@@ -75,3 +78,29 @@ Supported devices:
 (<channel>H or <channel>L) for N6762A can be selected: ps:1L
 
 * Korad/Velleman/Tenma 72-2550 power supply.
+
+#### voltage_supply -- a simple voltage supply device
+
+Parameters and commands (see `voltage_supply/Base.tcl`):
+```tcl
+public variable max_v; # max voltage
+public variable min_v; # min voltage
+public variable min_v_step; # min step in voltage
+
+method set_volt {val} # set voltage
+method get_volt {}    # get voltage value
+
+method lock {}   # lock the device
+method unlock {} # unlock the device
+```
+
+Supported devices:
+
+* Korad/Velleman/Tenma 72-2550 power supply.
+
+* SR844 lock-in (auxilary outputs). Use channels 1 or 2 to select the output.
+
+* Keysight 33511B generator (1 channel).
+
+* Keysight 33510B generator (2 channels). Use channels 1 or 2 to select the output.
+
