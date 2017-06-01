@@ -16,13 +16,12 @@ a "voltmeter", and thus it has a get_volt command.
 Usage:
 ```tcl
 Package require DeviceRole
-
 set dev [DeviceRole mult0 voltmeter]
 set v [dev get_volt]
 ```
 
 This device roles are not universal. All real devices have different
-capabilities. But in many cases some simple operations are needed, then
+capabilities, but in many cases some simple operations are needed, then
 DeviceRole library can be useful. For example, a program for NMR
 measurements can use a device with a "sweeper" role to sweep field (or
 frequency), and a device with "gauge" role to perform some measurements
@@ -31,23 +30,21 @@ and get values. Various devices can be used as these "sweeper" and
 
 #### Channels
 
-Sometimes it is useful to specify which "channel" of the device used
-for the role. It can be done in this way. Consider a lock-in amplifier, which
-has 4 auxilary outputs for setting DC voltage. Consider a device role
-"voltage_supply" which can set voltage on any device. Then you can write
-```tcl
-set dev [DeviceRole lockin0:2 voltage_supply]
-```
-This means, that channel 2 of device lockin0 should be used as a
-"voltage_supply". Note that this channel specification depend on a device
-models and can contain any device-specific parameter. For example, one
-can write a "gauge" role driver for a multimeter which can understand
-channels R,V,I for resistance, voltage or current measurements.
+Sometimes it is useful to specify which "channel" of the device used for
+the role: ```tcl set dev [DeviceRole lockin0:2 voltage_supply] ``` This
+means, that channel 2 of device lockin0 should be used as a
+"voltage_supply". Driver of the lock-in should know that the lock-in has
+two auxilary outputs and can use them as controlled voltage sources. Note
+that this channel specification depend on a device models and can contain
+any device-specific parameter. For example, one can write a "gauge" role
+driver for a multimeter which can understand channels R,V,I for
+resistance, voltage or current measurements.
 
 #### Locks and logging
 
 Library provides access to locks and logging implemented in Device library.
-Every driver has following commands (see Device library documentation):
+Every driver has following commands (see Device library documentation for
+more infomation):
 ```tcl
 * lock   -- lock the device
 * unlock -- unlock the device
@@ -81,12 +78,13 @@ get_stat {};    # get device status (short string to be shown in the user)
 
 Supported devices:
 
-* Keysight N6700B frame with N6762A and N6762A modules. Channel (1-4) and range
+* Keysight N6700B frame with N6762A or N6762A modules. Channel (1-4) and range
 (<channel>H or <channel>L) for N6762A can be selected: ps:1L
 
 * Korad/Velleman/Tenma 72-2550 power supply.
 
-#### voltage_supply -- a simple voltage supply device
+---
+#### voltage_supply -- a simple DC voltage source
 
 Parameters and commands (see `voltage_supply/Base.tcl`):
 ```tcl
@@ -108,9 +106,10 @@ Supported devices:
 
 * Keysight 33510B generator (2 channels). Use channels 1 or 2 to select the output.
 
+---
 #### gauge -- a gauge device
 
-Parameters and commands (see `voltage_supply/Base.tcl`):
+Parameters and commands (see `gauge/Base.tcl`):
 ```tcl
 get {} {}; # do the measurement, return one or more numbers
 
