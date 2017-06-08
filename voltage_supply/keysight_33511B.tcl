@@ -24,8 +24,12 @@ itcl::class device_role::voltage_supply::keysight_33511B {
   method set_volt {val} {
     $dev cmd SOUR:FUNC DC
     $dev cmd OUTP:LOAD INF
+    $dev cmd SOUR:VOLT:UNIT VPP
     $dev cmd SOUR:VOLT:OFFS $val
     $dev cmd OUTP ON
+  }
+  method set_volt_fast {val} {
+    $dev cmd SOUR:VOLT:OFFS $val
   }
   method get_volt {} { return [$dev cmd "SOUR:VOLT:OFFS? "] }
 }

@@ -1,10 +1,10 @@
 ######################################################################
-# A simple voltage_supply role
+# A noise_source role
 
 package require Itcl
 package require Device
 
-namespace eval device_role::voltage_supply {
+namespace eval device_role::noise_source {
 
   ## Detect device model, create and return driver object for it
   proc create {name chan} {
@@ -15,7 +15,7 @@ namespace eval device_role::voltage_supply {
 
     set n [namespace current]
     set driver {}
-    foreach m {tenma_72-2550 sr844 keysight_33510B keysight_33511B} {
+    foreach m {keysight_33510B keysight_33511B} {
       set re [set ${n}::${m}::id_regexp]
       if {[regexp $re $ID]} {
         return ${n}::[$m #auto ${n}::${name} $chan]
@@ -32,11 +32,12 @@ namespace eval device_role::voltage_supply {
     # variables which should be filled by driver:
     public variable max_v; # max voltage
     public variable min_v; # min voltage
-    public variable min_v_step; # min step in voltage
 
     # methods which should be defined by driver:
-    method set_volt      {val} {}; # set voltage and all output settings
-    method set_volt_fast {val} {}; # set voltage without touching other settings
-    method get_volt {} {};    # measure actual value of current
+    method set_noise      {bw volt {offs 0}} {}; # reconfigure the output, set bandwidth, voltage and offset
+    method set_noise_fast {bw volt {offs 0}} {}; # set bandwidth, voltage and offset
+    method get_volt  {} {};    # get voltage value
+    method get_bw    {} {};    # get bandwidth value
+    method get_offs  {} {};    # get bandwidth value
   }
 }

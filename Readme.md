@@ -107,6 +107,50 @@ Supported devices:
 * Keysight 33510B generator (2 channels). Use channels 1 or 2 to select the output.
 
 ---
+#### ac_source -- AC voltage source
+
+Parameters and commands (see `voltage_supply/Base.tcl`):
+```tcl
+variable max_v; # max voltage
+variable min_v; # min voltage
+
+set_ac {freq volt {offs 0}};      # reconfigure the output and set frequency, voltage, offset
+set_ac_fast {freq volt {offs 0}}; # set frequency, voltage, offset
+get_volt  {};    # get voltage value
+get_freq  {};    # get frequency value
+get_offs  {};    # get offset value
+```
+
+Supported devices:
+
+* Keysight 33511B generator (1 channel).
+
+* Keysight 33510B generator (2 channels). Use channels 1 or 2 to select the output.
+
+---
+#### noise_source -- noise source
+
+Parameters and commands (see `voltage_supply/Base.tcl`):
+```tcl
+variable max_v; # max voltage
+variable min_v; # min voltage
+
+set_noise      {bw volt {offs 0}}; # reconfigure the output, set bandwidth, voltage and offset
+set_noise_fast {bw volt {offs 0}}; # set bandwidth, voltage and offset
+get_volt  {};    # get voltage value
+get_bw    {};    # get bandwidth value
+get_offs  {};    # get offset value
+```
+
+Supported devices:
+
+* Keysight 33511B generator (1 channel).
+
+* Keysight 33510B generator (2 channels). Use channels 1 or 2 to select the output.
+
+
+
+---
 #### gauge -- a gauge device
 
 Parameters and commands (see `gauge/Base.tcl`):

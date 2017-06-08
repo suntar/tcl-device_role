@@ -21,7 +21,7 @@ tcl-device_role -- DeviceRole library, standardized drivers for devices
 %build
 mkdir -p %buildroot/%_tcldatadir/%teaname
 install -m644 *.tcl %buildroot/%_tcldatadir/%teaname
-for r in gauge power_supply voltage_supply; do
+for r in gauge power_supply voltage_supply ac_source noise_source; do
   mkdir -p %buildroot/%_tcldatadir/%teaname/$r
   install -m644 $r/*.tcl %buildroot/%_tcldatadir/%teaname/$r
 done
