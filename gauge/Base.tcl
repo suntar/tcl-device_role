@@ -15,7 +15,7 @@ namespace eval device_role::gauge {
 
     set n [namespace current]
     set driver {}
-    foreach m {sr844} {
+    foreach m {sr844 keysight_34461A} {
       set re [set ${n}::${m}::id_regexp]
       if {[regexp $re $ID]} {
         return ${n}::[$m #auto ${n}::${name} $chan]

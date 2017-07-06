@@ -174,3 +174,5 @@ Supported devices:
 use channels XY, RT, FXY, FRT to get X, Y, R, Theta, Frequency
 combinations. Full range/tconst/autorange support.
 
+* Keysight 34461A. Use channels ACI, DCI, ACV, DCV, R2, R4.
+Only autorange measurements are supported
