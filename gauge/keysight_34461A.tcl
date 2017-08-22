@@ -11,7 +11,7 @@ itcl::class device_role::gauge::keysight_34461A {
   inherit device_role::gauge::interface
   variable chan;  # channel to use (1..2)
 
-  common id_regexp {,34461A,}
+  proc id_regexp {} {return {,34461A,}}
 
   constructor {d ch} {
     if {$ch!="ACI" && $ch!="DCI"\

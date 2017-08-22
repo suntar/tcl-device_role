@@ -21,7 +21,7 @@ itcl::class device_role::power_supply::keysight_n6700b {
   variable chan;  # channel to use (1..4)
   variable range; # range to use (H/L)
 
-  common id_regexp {,N6700B,}
+  proc id_regexp {} {return {,N6700B,}}
 
   constructor {d ch} {
     set dev $d

@@ -11,7 +11,7 @@ package require Itcl
 itcl::class device_role::noise_source::keysight_33511B {
   inherit device_role::noise_source::interface
 
-  common id_regexp {,33511B,}
+  proc id_regexp {} {return {,33511B,}}
 
   constructor {d ch} {
     if {$ch!={}} {error "channels are not supported for the device $d"}

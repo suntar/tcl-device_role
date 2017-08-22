@@ -11,7 +11,7 @@ package require Itcl
 itcl::class device_role::voltage_supply::tenma_72-2550 {
   inherit device_role::voltage_supply::interface
 
-  common id_regexp {^KORADKA6003PV2.0}
+  proc id_regexp {} {return {^KORADKA6003PV2.0}}
 
   constructor {d ch} {
     if {$ch!={}} {error "channels are not supported for the device $d"}

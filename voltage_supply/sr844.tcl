@@ -12,7 +12,7 @@ itcl::class device_role::voltage_supply::sr844 {
 
   variable chan;  # channel to use (1..2)
 
-  common id_regexp {,SR844,}
+  proc id_regexp {} {return {,SR844,}}
 
   constructor {d ch} {
     if {$ch!=1 && $ch!=2} {

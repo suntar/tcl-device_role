@@ -20,7 +20,7 @@ itcl::class device_role::gauge::sr844 {
   common aux_range 10;     # auxilary input range: +/- 10V
   common aux_tconst 3e-4; # auxilary input bandwidth: 3kHz
 
-  common id_regexp {,SR844,}
+  proc id_regexp {} {return {,SR844,}}
 
   constructor {d ch} {
     if {$ch!=1 && $ch!=2 && $ch!="XY" && $ch!="RT" && $ch!="FXY" && $ch!="FRT"} {

@@ -16,7 +16,7 @@ namespace eval device_role::voltage_supply {
     set n [namespace current]
     set driver {}
     foreach m {tenma_72-2550 sr844 keysight_33510B keysight_33511B} {
-      set re [set ${n}::${m}::id_regexp]
+      set re [${n}::${m}::id_regexp]
       if {[regexp $re $ID]} {
         return ${n}::[$m #auto ${n}::${name} $chan]
       }

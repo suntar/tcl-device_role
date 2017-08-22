@@ -16,7 +16,7 @@ namespace eval device_role::ac_source {
     set n [namespace current]
     set driver {}
     foreach m {keysight_33510B keysight_33511B} {
-      set re [set ${n}::${m}::id_regexp]
+      set re [${n}::${m}::id_regexp]
       if {[regexp $re $ID]} {
         return ${n}::[$m #auto ${n}::${name} $chan]
       }
