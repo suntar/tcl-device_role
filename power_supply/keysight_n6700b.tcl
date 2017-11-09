@@ -85,7 +85,7 @@ itcl::class device_role::power_supply::keysight_n6700b {
   method get_stat {} {
     # error states
     set n [$dev cmd "stat:ques:cond? (@$chan)"]
-    if {! [string is integer $n] } {return {}}
+    if {! [string is integer $n] } {return BadQCond}
     if {$n & 1} {return OV}
     if {$n & 2} {return OC}
     if {$n & 4} {return PF}
@@ -100,11 +100,11 @@ itcl::class device_role::power_supply::keysight_n6700b {
     if {$n & 2048} {return PROT}
     if {$n & 4096} {return OSC}
     set n [$dev cmd "stat:oper:cond? (@$chan)"]
-    if {! [string is integer $n] } {return {}}
+    if {! [string is integer $n] } {return BadOCond}
     if {$n & 1} {return CV}
     if {$n & 2} {return CC}
     if {$n & 4} {return OFF}
-    return ""
+    return Unknown
   }
 
 }

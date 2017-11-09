@@ -1,10 +1,10 @@
 ######################################################################
-# A simple voltage_supply role
+# A simple dc_source role
 
 package require Itcl
 package require Device
 
-namespace eval device_role::voltage_supply {
+namespace eval device_role::dc_source {
 
   ## Detect device model, create and return driver object for it
   proc create {name chan} {

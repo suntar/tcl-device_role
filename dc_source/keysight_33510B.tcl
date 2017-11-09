@@ -8,8 +8,8 @@
 
 package require Itcl
 
-itcl::class device_role::voltage_supply::keysight_33510B {
-  inherit device_role::voltage_supply::interface
+itcl::class device_role::dc_source::keysight_33510B {
+  inherit device_role::dc_source::interface
 
   variable chan;  # channel to use (1..2)
 

@@ -10,7 +10,7 @@ lappend _files {*}[lsort [glob "$dir/power_supply/*.tcl" ]]
 lappend _files {*}[lsort [glob "$dir/gauge/*.tcl" ]]
 lappend _files {*}[lsort [glob "$dir/noise_source/*.tcl" ]]
 lappend _files {*}[lsort [glob "$dir/ac_source/*.tcl" ]]
-lappend _files {*}[lsort [glob "$dir/voltage_supply/*.tcl" ]]
+lappend _files {*}[lsort [glob "$dir/dc_source/*.tcl" ]]
 
 set _pcmd {}
 foreach _f $_files { lappend _pcmd "source $_f" }

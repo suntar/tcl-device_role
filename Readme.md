@@ -31,9 +31,9 @@ and get values. Various devices can be used as these "sweeper" and
 #### Channels
 
 Sometimes it is useful to specify which "channel" of the device used for
-the role: ```tcl set dev [DeviceRole lockin0:2 voltage_supply] ``` This
+the role: ```tcl set dev [DeviceRole lockin0:2 dc_source] ``` This
 means, that channel 2 of device lockin0 should be used as a
-"voltage_supply". Driver of the lock-in should know that the lock-in has
+"dc_source". Driver of the lock-in should know that the lock-in has
 two auxilary outputs and can use them as controlled voltage sources. Note
 that this channel specification depend on a device models and can contain
 any device-specific parameter. For example, one can write a "gauge" role
@@ -84,9 +84,9 @@ Supported devices:
 * Korad/Velleman/Tenma 72-2550 power supply.
 
 ---
-#### voltage_supply -- a simple DC voltage source
+#### dc_source -- a simple DC voltage source
 
-Parameters and commands (see `voltage_supply/Base.tcl`):
+Parameters and commands (see `dc_source/Base.tcl`):
 ```tcl
 variable max_v; # max voltage
 variable min_v; # min voltage

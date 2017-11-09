@@ -8,8 +8,8 @@
 
 package require Itcl
 
-itcl::class device_role::voltage_supply::keysight_33511B {
-  inherit device_role::voltage_supply::interface
+itcl::class device_role::dc_source::keysight_33511B {
+  inherit device_role::dc_source::interface
 
   proc id_regexp {} {return {,33511B,}}
 

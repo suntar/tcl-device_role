@@ -8,8 +8,8 @@
 
 package require Itcl
 
-itcl::class device_role::voltage_supply::tenma_72-2550 {
-  inherit device_role::voltage_supply::interface
+itcl::class device_role::dc_source::tenma_72-2550 {
+  inherit device_role::dc_source::interface
 
   proc id_regexp {} {return {^KORADKA6003PV2.0}}
 

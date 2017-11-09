@@ -7,8 +7,8 @@
 
 package require Itcl
 
-itcl::class device_role::voltage_supply::sr844 {
-  inherit device_role::voltage_supply::interface
+itcl::class device_role::dc_source::sr844 {
+  inherit device_role::dc_source::interface
 
   variable chan;  # channel to use (1..2)
 

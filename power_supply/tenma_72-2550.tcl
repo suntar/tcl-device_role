@@ -53,6 +53,7 @@ itcl::class device_role::power_supply::tenma_72-2550 {
 
   method get_stat {} {
     # error states
+    set n 0
     binary scan [$dev cmd "STATUS?"] cu n
     if {$n==80 || $n==63}  {return CC}
     if {$n==79 || $n==81}  {return CV}
