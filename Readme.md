@@ -94,6 +94,7 @@ variable min_v_step; # min step in voltage
 
 set_volt {val}; # set voltage
 get_volt {};    # get voltage value
+off {};         # turn the output off
 ```
 
 Supported devices:
@@ -119,6 +120,7 @@ set_ac_fast {freq volt {offs 0}}; # set frequency, voltage, offset
 get_volt  {};    # get voltage value
 get_freq  {};    # get frequency value
 get_offs  {};    # get offset value
+off {};          # turn the output off
 ```
 
 Supported devices:
@@ -140,6 +142,7 @@ set_noise_fast {bw volt {offs 0}}; # set bandwidth, voltage and offset
 get_volt  {};    # get voltage value
 get_bw    {};    # get bandwidth value
 get_offs  {};    # get offset value
+off {};          # turn the output off
 ```
 
 Supported devices:

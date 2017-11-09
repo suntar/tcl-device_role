@@ -39,5 +39,6 @@ namespace eval device_role::ac_source {
     method get_volt  {} {};    # get voltage value
     method get_freq  {} {};    # get frequency value
     method get_offs  {} {};    # get offset value
+    method off       {} {};    # turn off the signal
   }
 }

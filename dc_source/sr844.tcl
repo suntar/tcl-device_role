@@ -28,5 +28,11 @@ itcl::class device_role::dc_source::sr844 {
   method set_volt {val} {
     $dev cmd "AUXO${chan},$val"
   }
+  method set_volt_fast {val} {
+    $dev cmd "AUXO${chan},$val"
+  }
+  method off {} {
+    set_volt 0
+  }
   method get_volt {} { return [$dev cmd "AUXO?${chan}"] }
 }

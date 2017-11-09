@@ -26,6 +26,16 @@ itcl::class device_role::dc_source::tenma_72-2550 {
     $dev cmd "ISET1:3.09"
     set val [expr {round($val*100)/100.0}]
     $dev cmd "VSET1:$val"
+    $dev cmd "OUT1"
   }
+  method set_volt_fast {val} {
+    set val [expr {round($val*100)/100.0}]
+    $dev cmd "VSET1:$val"
+  }
+  method off {} {
+    $dev cmd "VSET1:0"
+    $dev cmd "OUT0"
+  }
+
   method get_volt {} { return [$dev cmd "VOUT1?"] }
 }

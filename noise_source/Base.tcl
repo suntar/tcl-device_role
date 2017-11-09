@@ -39,5 +39,6 @@ namespace eval device_role::noise_source {
     method get_volt  {} {};    # get voltage value
     method get_bw    {} {};    # get bandwidth value
     method get_offs  {} {};    # get bandwidth value
+    method off       {} {};    # turn off the signal
   }
 }

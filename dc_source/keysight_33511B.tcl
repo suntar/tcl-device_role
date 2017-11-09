@@ -31,5 +31,9 @@ itcl::class device_role::dc_source::keysight_33511B {
   method set_volt_fast {val} {
     $dev cmd SOUR:VOLT:OFFS $val
   }
+  method off {} {
+    $dev cmd SOUR:VOLT:OFFS 0
+    $dev cmd OUTP${chan} OFF
+  }
   method get_volt {} { return [$dev cmd "SOUR:VOLT:OFFS? "] }
 }

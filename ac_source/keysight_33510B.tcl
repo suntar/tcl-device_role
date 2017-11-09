@@ -39,8 +39,14 @@ itcl::class device_role::ac_source::keysight_33510B {
     $dev cmd SOUR${chan}:APPLY:SIN $freq,$volt,$offs
   }
 
+  method off {} {
+    $dev cmd SOUR${chan}:APPLY:SIN 1,$min_v,0
+    $dev cmd OUTP${chan} OFF
+  }
+
   method get_volt {} { return [$dev cmd "SOUR${chan}:VOLT?"] }
   method get_freq {} { return [$dev cmd "SOUR${chan}:FREQ?"] }
   method get_offs {} { return [$dev cmd "SOUR${chan}:VOLT:OFFS?"] }
+
 
 }

@@ -34,6 +34,12 @@ itcl::class device_role::noise_source::keysight_33511B {
     $dev cmd SOUR:VOLT:OFFS $offs
     $dev cmd SOUR:FUNC:NOISE:BANDWIDTH $bw
   }
+  method off {} {
+    $dev cmd SOUR:VOLT $min_v
+    $dev cmd SOUR:VOLT:OFFS 0
+    $dev cmd SOUR:FUNC:NOISE:BANDWIDTH 10e6
+    $dev cmd OUTP OFF
+  }
   method get_volt {} { return [$dev cmd "SOUR:VOLT?"] }
   method get_bw   {} { return [$dev cmd "SOUR:FUNC:NOISE:BANDWIDTH?"] }
   method get_offs {} { return [$dev cmd "SOUR:VOLT:OFFS?"] }
