@@ -14,7 +14,7 @@ itcl::class device_role::gauge::sr844 {
   variable chan;  # channel to use (1..2)
 
   # lock-in ranges and time constants
-  common ranges  {1e-7 3e-7 1e-6 3e-6 1e-5 3e-5 1e-4 3e-4 1e-3 3e-3 1e-2 3e-2 1e-2 3e-1 1.0}
+  common ranges  {1e-7 3e-7 1e-6 3e-6 1e-5 3e-5 1e-4 3e-4 1e-3 3e-3 1e-2 3e-2 0.1 0.3 1.0}
   common tconsts {1e-4 3e-4 1e-3 3e-3 1e-2 3e-2 0.1 0.3 1.0 3.0 10.0 30.0 1e2 3e3 1e3 3e3 1e4 3e4}
 
   common aux_range 10;     # auxilary input range: +/- 10V
