@@ -32,7 +32,7 @@ itcl::class device_role::ac_source::keysight_33510B {
     $dev cmd SOUR${chan}:VOLT $volt
     $dev cmd SOUR${chan}:VOLT:OFFS $offs
     $dev cmd SOUR${chan}:FREQ $freq
-    $dev cmd OUTP${chan} ON
+    $dev cmd OUTP:SYNC:SOUR CH${chan}
   }
 
   method set_ac_fast {freq volt {offs 0}} {

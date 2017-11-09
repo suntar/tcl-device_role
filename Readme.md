@@ -127,7 +127,8 @@ Supported devices:
 
 * Keysight 33511B generator (1 channel).
 
-* Keysight 33510B generator (2 channels). Use channels 1 or 2 to select the output.
+* Keysight 33510B generator (2 channels). Use channels 1 or 2 to select the output. set_ac command sets
+sync signal to follow the current channel.
 
 ---
 #### noise_source -- noise source
