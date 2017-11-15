@@ -89,13 +89,13 @@ itcl::class device_role::gauge::sr844 {
   ############################
   method set_range  {val} {
     if {$chan==1 || $chan==2} { error "can't set range for auxilar input $chan" }
-    set n [lsearch -real $ranges $val]
+    set n [lsearch -real -exact $ranges $val]
     if {$n<0} {error "unknown range setting: $val"}
     $dev cmd "SENS $n"
   }
   method set_tconst {val} {
     if {$chan==1 || $chan==2} { error "can't set time constant for auxilar input $chan" }
-    set n [lsearch -real $tconsts $val]
+    set n [lsearch -real -exact $tconsts $val]
     if {$n<0} {error "unknown time constant setting: $val"}
     $dev cmd "OFLT $n"
   }
