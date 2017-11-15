@@ -18,6 +18,7 @@ Usage:
 Package require DeviceRole
 set dev [DeviceRole mult0 voltmeter]
 set v [dev get_volt]
+itcl::delete object $dev
 ```
 
 This device roles are not universal. All real devices have different
