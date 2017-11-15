@@ -41,16 +41,17 @@ any device-specific parameter. For example, one can write a "gauge" role
 driver for a multimeter which can understand channels R,V,I for
 resistance, voltage or current measurements.
 
-#### Locks and logging
+#### Locks
 
-Library provides access to locks and logging implemented in Device library.
+Library provides access to locks implemented in Device library.
 Every driver has following commands (see Device library documentation for
 more infomation):
 ```tcl
 * lock   -- lock the device
 * unlock -- unlock the device
-* set_logfile <f> -- set file for logging
 ```
+
+TODO: channel locks.
 
 ---
 ## Existing roles:

@@ -35,5 +35,4 @@ itcl::class device_role::base_interface {
 
   method lock {} {$dev lock}
   method unlock {} {$dev unlock}
-  method set_logfile {f} {$dev set_logfile $f}
 }
