@@ -85,6 +85,8 @@ Supported devices:
 
 * Korad/Velleman/Tenma 72-2550 power supply.
 
+* Korad/Velleman/Tenma 72-2540 power supply.
+
 ---
 #### dc_source -- a simple DC voltage source
 
@@ -100,6 +102,8 @@ off {};         # turn the output off
 ```
 
 Supported devices:
+
+* Korad/Velleman/Tenma 72-2540 power supply.
 
 * Korad/Velleman/Tenma 72-2550 power supply.
 
