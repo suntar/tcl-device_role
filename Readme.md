@@ -53,6 +53,15 @@ more infomation):
 
 TODO: channel locks.
 
+#### Test devices
+
+Some roles have a TEST device which is not connected to any phisycal
+device and produce some fake data. You can use it for testing:
+
+```tcl
+set dev [DeviceRole TEST power_supply]
+```
+
 ---
 ## Existing roles:
 
