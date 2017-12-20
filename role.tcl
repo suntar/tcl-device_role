@@ -31,7 +31,7 @@ itcl::class device_role::base_interface {
 
   # Drivers should provide constructor with "device" and "channel" parameters
   constructor {} {}
-  destructor {itcl::delete object $dev}
+  destructor { if {[info commands $dev]!={}} { itcl::delete object $dev } }
 
   method lock {} {$dev lock}
   method unlock {} {$dev unlock}
