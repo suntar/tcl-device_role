@@ -17,7 +17,12 @@ namespace eval device_role::power_supply {
     set ID [$name cmd *IDN?]
 
     set driver {}
-    foreach m {keysight_n6700b tenma_72-2550 tenma_72-2540} {
+    foreach m {\
+               keysight_n6700b\
+               tenma_72-2550\
+               tenma_72-2540_v2.0\
+               tenma_72-2540_v2.1\
+              } {
       set re [${n}::${m}::id_regexp]
       if {[regexp $re $ID]} {
         return ${n}::[$m #auto ${n}::${name} $chan]

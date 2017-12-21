@@ -15,7 +15,14 @@ namespace eval device_role::dc_source {
 
     set n [namespace current]
     set driver {}
-    foreach m {tenma_72-2550 sr844 keysight_33510B keysight_33511B} {
+    foreach m {\
+               tenma_72-2550\
+               tenma_72-2540_v2.0\
+               tenma_72-2540_v2.1\
+               sr844\
+               keysight_33510B\
+               keysight_33511B\
+              } {
       set re [${n}::${m}::id_regexp]
       if {[regexp $re $ID]} {
         return ${n}::[$m #auto ${n}::${name} $chan]
