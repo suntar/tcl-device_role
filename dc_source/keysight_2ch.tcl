@@ -1,19 +1,20 @@
-# Use generator Keysight 33510B (2 channels) as a voltage_suply.
+# Use HP/Agilent/Keysight 2-channel generators
+# as a DC source.
 #
-# ID string:
-# Agilent
-# Technologies,33510B,MY52201807,3.05-1.19-2.00-52-00
+# ID strings:
+# Agilent Technologies,33510B,MY52201807,3.05-1.19-2.00-52-00
+# Agilent Technologies,33522A,MY50005619,2.03-1.19-2.00-52-00
 #
 # Use channels 1 or 2 to set output
 
 package require Itcl
 
-itcl::class device_role::dc_source::keysight_33510B {
+itcl::class device_role::dc_source::keysight_2ch {
   inherit device_role::dc_source::interface
 
   variable chan;  # channel to use (1..2)
 
-  proc id_regexp {} {return {,33510B,}}
+  proc id_regexp {} {return {,(33510B|33522A),}}
 
   constructor {d ch} {
     if {$ch!=1 && $ch!=2} {

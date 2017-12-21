@@ -17,10 +17,10 @@ namespace eval device_role::dc_source {
     set driver {}
     foreach m {\
                tenma_72-2550\
-               tenma_72-2540_v2.0\
-               tenma_72-2540_v2.1\
+               tenma_72-2540_v20\
+               tenma_72-2540_v21\
                sr844\
-               keysight_33510B\
+               keysight_2ch\
                keysight_33511B\
               } {
       set re [${n}::${m}::id_regexp]

@@ -20,8 +20,8 @@ namespace eval device_role::power_supply {
     foreach m {\
                keysight_n6700b\
                tenma_72-2550\
-               tenma_72-2540_v2.0\
-               tenma_72-2540_v2.1\
+               tenma_72-2540_v20\
+               tenma_72-2540_v21\
               } {
       set re [${n}::${m}::id_regexp]
       if {[regexp $re $ID]} {

@@ -55,7 +55,7 @@ itcl::class device_role::dc_source::tenma_72-2550 {
 }
 
 ##################################################
-itcl::class device_role::dc_source::tenma_72-2540_v2.0 {
+itcl::class device_role::dc_source::tenma_72-2540_v20 {
   inherit device_role::dc_source::tenma_base
 
   proc id_regexp {} {return {^(TENMA72-2540V2.0)}}
@@ -70,7 +70,7 @@ itcl::class device_role::dc_source::tenma_72-2540_v2.0 {
 
 ##################################################
 
-itcl::class device_role::dc_source::tenma_72-2540_v2.1 {
+itcl::class device_role::dc_source::tenma_72-2540_v21 {
   inherit device_role::dc_source::tenma_base
 
   proc id_regexp {} {return {^TENMA 72-2540 V2.1}}
