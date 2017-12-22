@@ -20,19 +20,18 @@ itcl::class device_role::ac_source::keysight_2ch {
     if {$ch!=1 && $ch!=2} {
       error "$this: bad channel setting: $ch"}
     set chan $ch
-
     set dev $d
     set max_v 20
     set min_v 0.002
+    $dev cmd SOUR${chan}:VOLT:UNIT VPP
+    $dev cmd UNIT:ANGL DEG
+    $dev cmd SOUR${chan}:FUNC SIN
+    $dev cmd OUTP${chan}:LOAD INF
   }
 
   method set_ac {freq volt {offs 0}} {
-    $dev cmd SOUR${chan}:FUNC SIN
-    $dev cmd OUTP${chan}:LOAD INF
-    $dev cmd SOUR${chan}:VOLT:UNIT VPP
-    $dev cmd SOUR${chan}:VOLT $volt
-    $dev cmd SOUR${chan}:VOLT:OFFS $offs
-    $dev cmd SOUR${chan}:FREQ $freq
+    $dev cmd SOUR${chan}:APPLY:SIN $freq,$volt,$offs
+    $dev cmd OUTP${chan} ON
     $dev cmd OUTP:SYNC:SOUR CH${chan}
   }
 
@@ -48,6 +47,12 @@ itcl::class device_role::ac_source::keysight_2ch {
   method get_volt {} { return [$dev cmd "SOUR${chan}:VOLT?"] }
   method get_freq {} { return [$dev cmd "SOUR${chan}:FREQ?"] }
   method get_offs {} { return [$dev cmd "SOUR${chan}:VOLT:OFFS?"] }
+  method get_phase {} { return [$dev cmd "SOUR${chan}:PHAS?"] }
+  method set_phase {ph} { $dev cmd "SOUR${chan}:PHAS $ph" }
 
-
+  method set_sync {state} {
+    $dev cmd OUTP:SYNC:SOUR CH${chan}
+    if {$state} { $dev cmd OUTP:SYNC ON }\
+    else        { $dev cmd OUTP:SYNC OFF }
+  }
 }

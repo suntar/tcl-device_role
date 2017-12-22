@@ -40,5 +40,9 @@ namespace eval device_role::ac_source {
     method get_freq  {} {};    # get frequency value
     method get_offs  {} {};    # get offset value
     method off       {} {};    # turn off the signal
+
+    method set_phase {ph} {};    # set phase
+    method get_phase {} {};      # get phase
+    method set_sync  {state} {}; # set state of front-panel sync connector
   }
 }

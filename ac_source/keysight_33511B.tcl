@@ -18,15 +18,14 @@ itcl::class device_role::ac_source::keysight_33511B {
     set dev $d
     set max_v 20
     set min_v 0.002
+    $dev cmd SOUR:VOLT:UNIT VPP
+    $dev cmd UNIT:ANGL DEG
+    $dev cmd SOUR:FUNC SIN
+    $dev cmd OUTP:LOAD INF
   }
 
   method set_ac {freq volt {offs 0}} {
-    $dev cmd SOUR:FUNC SIN
-    $dev cmd OUTP:LOAD INF
-    $dev cmd SOUR:VOLT:UNIT VPP
-    $dev cmd SOUR:VOLT $volt
-    $dev cmd SOUR:VOLT:OFFS $offs
-    $dev cmd SOUR:FREQ $freq
+    $dev cmd SOUR:APPLY:SIN $freq,$volt,$offs
     $dev cmd OUTP ON
   }
 
@@ -42,4 +41,12 @@ itcl::class device_role::ac_source::keysight_33511B {
   method get_volt {} { return [$dev cmd "SOUR:VOLT?"] }
   method get_freq {} { return [$dev cmd "SOUR:FREQ?"] }
   method get_offs {} { return [$dev cmd "SOUR:VOLT:OFFS?"] }
+
+  method get_phase {} { return [$dev cmd "SOUR:PHAS?"] }
+  method set_phase {ph} { $dev cmd "SOUR:PHAS $ph" }
+
+  method set_sync {state} {
+    if {$state} { $dev cmd OUTP:SYNC ON }\
+    else        { $dev cmd OUTP:SYNC OFF }
+  }
 }
