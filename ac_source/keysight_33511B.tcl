@@ -41,9 +41,12 @@ itcl::class device_role::ac_source::keysight_33511B {
   method get_volt {} { return [$dev cmd "SOUR:VOLT?"] }
   method get_freq {} { return [$dev cmd "SOUR:FREQ?"] }
   method get_offs {} { return [$dev cmd "SOUR:VOLT:OFFS?"] }
-
   method get_phase {} { return [$dev cmd "SOUR:PHAS?"] }
-  method set_phase {ph} { $dev cmd "SOUR:PHAS $ph" }
+
+  method set_volt {v}  { $dev cmd "SOUR:VOLT $v" }
+  method set_freq {v}  { $dev cmd "SOUR:FREQ $v" }
+  method set_offs {v}  { $dev cmd "SOUR:VOLT:OFFS $v" }
+  method set_phase {v} { $dev cmd "SOUR:PHAS $v" }
 
   method set_sync {state} {
     if {$state} { $dev cmd OUTP:SYNC ON }\

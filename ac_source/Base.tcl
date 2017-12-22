@@ -36,13 +36,19 @@ namespace eval device_role::ac_source {
     # methods which should be defined by driver:
     method set_ac {freq volt {offs 0}} {};      # reconfigure output, set frequency, voltage, offset
     method set_ac_fast {freq volt {offs 0}} {}; # set frequency, voltage, offset
+    method off       {} {};    # turn off the signal
+
     method get_volt  {} {};    # get voltage value
     method get_freq  {} {};    # get frequency value
     method get_offs  {} {};    # get offset value
-    method off       {} {};    # turn off the signal
+    method get_phase {} {};    # get phase
 
-    method set_phase {ph} {};    # set phase
-    method get_phase {} {};      # get phase
+    method set_volt {v}  {}
+    method set_freq {v}  {}
+    method set_offs {v}  {}
+    method set_phase {v} {}
+
     method set_sync  {state} {}; # set state of front-panel sync connector
+
   }
 }

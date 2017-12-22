@@ -32,7 +32,6 @@ itcl::class device_role::ac_source::keysight_2ch {
   method set_ac {freq volt {offs 0}} {
     $dev cmd SOUR${chan}:APPLY:SIN $freq,$volt,$offs
     $dev cmd OUTP${chan} ON
-    $dev cmd OUTP:SYNC:SOUR CH${chan}
   }
 
   method set_ac_fast {freq volt {offs 0}} {
@@ -48,7 +47,11 @@ itcl::class device_role::ac_source::keysight_2ch {
   method get_freq {} { return [$dev cmd "SOUR${chan}:FREQ?"] }
   method get_offs {} { return [$dev cmd "SOUR${chan}:VOLT:OFFS?"] }
   method get_phase {} { return [$dev cmd "SOUR${chan}:PHAS?"] }
-  method set_phase {ph} { $dev cmd "SOUR${chan}:PHAS $ph" }
+
+  method set_volt {v}  { $dev cmd "SOUR${chan}:VOLT $v" }
+  method set_freq {v}  { $dev cmd "SOUR${chan}:FREQ $v" }
+  method set_offs {v}  { $dev cmd "SOUR${chan}:VOLT:OFFS $v" }
+  method set_phase {v} { $dev cmd "SOUR${chan}:PHAS $v" }
 
   method set_sync {state} {
     $dev cmd OUTP:SYNC:SOUR CH${chan}
