@@ -47,7 +47,13 @@ itcl::class device_role::gauge::sr844 {
     #get range
     set n [$dev cmd "SENS?"]
 
+    #get tconst
+    set t [get_tconst]
+
     while {1} {
+      #wait
+      after [expr {int(5*$t*1000)}]
+
       # measure X,Y,R,T,F
       set out [string map {"," " "} [$dev cmd SNAP?1,2,3,5,8]]
       set X [lindex $out 0]
