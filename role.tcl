@@ -9,6 +9,7 @@
 # Channel can be sat for some devices, see power_supply/*.tcl
 
 package require Itcl
+package require Device
 
 namespace eval device_role {}
 
