@@ -47,7 +47,6 @@ proc DeviceRole {name role} {
 
 ## Base interface class. All role interfaces are children of it
 itcl::class device_role::base_interface {
-  proc id_regex {} {}; ## return regexp for *IDN? response used to detect device model
   variable dev; ## Device handler (see Device library)
 
   # Drivers should provide constructor with "device" and "channel" parameters

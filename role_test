@@ -1,12 +1,9 @@
 #!/usr/bin/tclsh
 
-set files {}
-lappend files role.tcl
-lappend files {*}[lsort [glob {power_supply/*.tcl} ]]
+source ./role.tcl
+source ./power_supply.tcl
 
-foreach f $files { source "./$f" }
-
-set dev [DeviceRole ps1 power_supply]
+set dev [DeviceRole ps2 power_supply]
 
 puts [$dev cc_reset]
 after 100
