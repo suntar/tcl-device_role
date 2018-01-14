@@ -135,10 +135,18 @@ variable min_v; # min voltage
 
 set_ac {freq volt {offs 0}};      # reconfigure the output and set frequency, voltage, offset
 set_ac_fast {freq volt {offs 0}}; # set frequency, voltage, offset
-get_volt  {};    # get voltage value
-get_freq  {};    # get frequency value
-get_offs  {};    # get offset value
-off {};          # turn the output off
+get_volt  {};     # get voltage value (Vpp)
+get_freq  {};     # get frequency value (Hz)
+get_offs  {};     # get offset value (V)
+get_phase {};     # get phase value (degrees)
+
+set_volt  {v};    # set voltage value (Vpp)
+set_freq  {v};    # set frequency value (Hz)
+set_offs  {v};    # set offset value (V)
+set_phase {v};    # set phase value (degrees)
+
+set_sync {state}; # set state of front-panel sync connector (0 or 1)
+off {};           # turn the output off
 ```
 
 Supported devices:
