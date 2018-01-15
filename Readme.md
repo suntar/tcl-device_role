@@ -34,7 +34,7 @@ and get values. Various devices can be used as these "sweeper" and
 Sometimes it is useful to specify which "channel" of the device used for
 the role: ```tcl set dev [DeviceRole lockin0:2 dc_source] ``` This
 means, that channel 2 of device lockin0 should be used as a
-"dc_source". Driver of the lock-in should know that the lock-in has
+"dc_source". Driver of the lock-in knows that the lock-in has
 two auxilary outputs and can use them as controlled voltage sources. Note
 that this channel specification depend on a device models and can contain
 any device-specific parameter. For example, one can write a "gauge" role
@@ -51,7 +51,8 @@ more infomation):
 * unlock -- unlock the device
 ```
 
-TODO: channel locks.
+TODO: channel-specific locks.
+
 
 #### Test devices
 
@@ -96,6 +97,8 @@ Supported devices:
 
 * Korad/Velleman/Tenma 72-2540 power supply.
 
+* TEST
+
 ---
 #### dc_source -- a simple DC voltage source
 
@@ -120,7 +123,7 @@ Supported devices:
 
 * Keysight 33511B generator (1 channel).
 
-* Keysight 33510B generator (2 channels). Use channels 1 or 2 to select the output.
+* Keysight/Agilent/HP 2-channel generators 33510B and 33522A. Use channels 1 or 2 to select the output.
 
 ---
 #### ac_source -- AC voltage source
@@ -150,8 +153,8 @@ Supported devices:
 
 * Keysight 33511B generator (1 channel).
 
-* Keysight 33510B generator (2 channels). Use channels 1 or 2 to select the output. set_ac command sets
-sync signal to follow the current channel.
+* Keysight/Agilent/HP 2-channel generators 33510B and 33522A. Use channels 1 or 2 to select the output.
+set_ac command sets sync signal to follow the current channel.
 
 ---
 #### noise_source -- noise source
@@ -173,7 +176,7 @@ Supported devices:
 
 * Keysight 33511B generator (1 channel).
 
-* Keysight 33510B generator (2 channels). Use channels 1 or 2 to select the output.
+* Keysight/Agilent/HP 2-channel generators 33510B and 33522A. Use channels 1 or 2 to select the output.
 
 
 
