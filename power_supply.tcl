@@ -296,7 +296,20 @@ itcl::class tenma_base {
 ##################################################
 itcl::class tenma_72-2550 {
   inherit tenma_base
-  proc id_regexp {} {return {^KORADKA6003PV2.0}}
+  proc id_regexp {} {return {KORADKA6003PV2.0}}
+
+  constructor {d ch} {
+    tenma_base::constructor $d $ch
+  } {
+    set max_i 3.09
+    set max_v 60.0
+  }
+}
+
+##################################################
+itcl::class tenma_72-2550_v20 {
+  inherit tenma_base
+  proc id_regexp {} {return {TENMA72-2550V2.0}}
 
   constructor {d ch} {
     tenma_base::constructor $d $ch
@@ -309,7 +322,7 @@ itcl::class tenma_72-2550 {
 ##################################################
 itcl::class tenma_72-2540_v20 {
   inherit tenma_base
-  proc id_regexp {} {return {^(TENMA72-2540V2.0)}}
+  proc id_regexp {} {return {TENMA72-2540V2.0}}
 
   constructor {d ch} {
     tenma_base::constructor $d $ch
@@ -323,12 +336,26 @@ itcl::class tenma_72-2540_v20 {
 
 itcl::class tenma_72-2540_v21 {
   inherit tenma_base
-  proc id_regexp {} {return {^TENMA 72-2540 V2.1}}
+  proc id_regexp {} {return {TENMA 72-2540 V2.1}}
 
   constructor {d ch} {
     tenma_base::constructor $d $ch
   } {
     set max_i 5.09
+    set max_v 31.0
+  }
+}
+
+##################################################
+
+itcl::class tenma_72-2535_v21 {
+  inherit tenma_base
+  proc id_regexp {} {return {TENMA 72-2535 V2.1}}
+
+  constructor {d ch} {
+    tenma_base::constructor $d $ch
+  } {
+    set max_i 3.09
     set max_v 31.0
   }
 }
