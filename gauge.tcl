@@ -114,57 +114,18 @@ itcl::class sr844 {
   }
 
   ############################
-  method get {} {
+  method get {{auto 0}} {
     if {$chan==1 || $chan==2} {
       return [$dev cmd "AUXO?${chan}"]
     }
+    if {$auto} {$dev cmd AGAN}
     if {$chan=="XY"} { return [string map {"," " "} [$dev cmd SNAP?1,2]] }
     if {$chan=="RT"} { return [string map {"," " "} [$dev cmd SNAP?3,5]] }
     if {$chan=="FXY"} { return [string map {"," " "} [$dev cmd SNAP?8,1,2]] }
     if {$chan=="FRT"} { return [string map {"," " "} [$dev cmd SNAP?8,3,5]] }
 
   }
-  method get_auto {} {
-    if {$chan==1 || $chan==2} {
-      return [$dev cmd "AUXO?${chan}"]
-    }
-    #get range
-    set n [$dev cmd "SENS?"]
-
-    #get tconst
-    set t [get_tconst]
-
-    while {1} {
-      #wait
-      after [expr {int(5*$t*1000)}]
-
-      # measure X,Y,R,T,F
-      set out [string map {"," " "} [$dev cmd SNAP?1,2,3,5,8]]
-      set X [lindex $out 0]
-      set Y [lindex $out 1]
-      set R [lindex $out 2]
-      set T [lindex $out 3]
-      set F [lindex $out 4]
-
-      # increase sensitivity if needed
-      if {$n>0 && $R <= [lindex $ranges [expr {$n-1}]]*0.95 } {
-        set n [expr {$n-1}]
-        $dev cmd "SENS $n"
-        continue
-      }
-      # decrease sensitivity if needed
-      if {$n<[llength $ranges] && $R > [lindex $ranges $n]*0.95 } {
-        set n [expr {$n+1}]
-        $dev cmd "SENS $n"
-        continue
-      }
-      # return values
-      if {$chan=="XY"} { return "$X $Y" }
-      if {$chan=="RT"} { return "$R $T" }
-      if {$chan=="FXY"} { return "$F $X $Y" }
-      if {$chan=="FRT"} { return "$F $R $T" }
-    }
-  }
+  method get_auto {} { return [get 1] }
 
   ############################
   method list_ranges {} {
