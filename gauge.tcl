@@ -25,6 +25,8 @@ itcl::class interface {
   method get_range  {} {}; # get current range setting
   method get_tconst {} {}; # get current time constant setting
 
+  method get_status {} {return ""}; # get current time constant setting
+  method get_status_raw {} {return 0};
 }
 
 
@@ -123,7 +125,6 @@ itcl::class sr844 {
     if {$chan=="RT"} { return [string map {"," " "} [$dev cmd SNAP?3,5]] }
     if {$chan=="FXY"} { return [string map {"," " "} [$dev cmd SNAP?8,1,2]] }
     if {$chan=="FRT"} { return [string map {"," " "} [$dev cmd SNAP?8,3,5]] }
-
   }
   method get_auto {} { return [get 1] }
 
@@ -162,6 +163,24 @@ itcl::class sr844 {
     set n [$dev cmd "OFLT?"]
     return [lindex $tconsts $n]
   }
+
+  method get_status_raw {} {
+    return [$dev cmd "LIAS?"]
+  }
+
+  method get_status {} {
+    set s [$dev cmd "LIAS?"]
+    if {$s & (1<<0)} {return "UNLOCK"}
+    if {$s & (1<<7)} {return "FRE_CH"}
+    if {$s & (1<<1)} {return "FREQ_OVR"}
+    if {$s & (1<<4)} {return "INP_OVR"}
+    if {$s & (1<<5)} {return "AMP_OVR"}
+    if {$s & (1<<6)} {return "FLT_OVR"}
+    if {$s & (1<<8)} {return "CH1_OVR"}
+    if {$s & (1<<9)} {return "CH2_OVR"}
+    return ""
+  }
+
 }
 
 ######################################################################
