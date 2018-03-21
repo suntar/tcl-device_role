@@ -206,3 +206,6 @@ combinations. Full range/tconst/autorange support.
 
 * Keysight 34461A. Use channels ACI, DCI, ACV, DCV, R2, R4.
 Only autorange measurements are supported
+
+* PicoScope, lockin measurements with pico_rec+pico_filter program.
+Channels: lockin, lockin:XY

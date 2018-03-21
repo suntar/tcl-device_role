@@ -120,7 +120,7 @@ itcl::class sr844 {
     if {$chan==1 || $chan==2} {
       return [$dev cmd "AUXO?${chan}"]
     }
-    if {$auto} {$dev cmd AGAN}
+    if {$auto} {$dev cmd "AGAN"; after 100}
     if {$chan=="XY"} { return [string map {"," " "} [$dev cmd SNAP?1,2]] }
     if {$chan=="RT"} { return [string map {"," " "} [$dev cmd SNAP?3,5]] }
     if {$chan=="FXY"} { return [string map {"," " "} [$dev cmd SNAP?8,1,2]] }
@@ -182,6 +182,88 @@ itcl::class sr844 {
   }
 
 }
+
+
+######################################################################
+# Use Picoscope as a gauge.
+#
+# Use channels 1 or 2 to measure voltage from auxilary inputs,
+# channels XY RT FXY FRT to measure lockin X Y R Theta values
+
+itcl::class picoscope {
+  inherit interface
+  proc id_regexp {} {return {pico_rec}}
+
+  variable chan;  # channel to use
+
+  # lock-in ranges and time constants
+  common ranges
+  common tconsts {1e-4 3e-4 1e-3 3e-3 1e-2 3e-2 0.1 0.3 1.0 3.0 10.0}
+  common tconst
+  common range_a
+  common range_b
+  common npt 1e6; # point number
+  common sigfile
+
+  constructor {d ch} {
+    if {$ch!="lockin" && $ch!="lockin:XY"} {
+      error "$this: bad channel setting: $ch"}
+    set chan $ch
+    set dev $d
+
+    # oscilloscope ranges
+    set ranges [lindex [$dev cmd ranges A] 0]
+    set tconst  1.0
+    set range_a 1.0
+    set range_b 10.0
+    set sigfile "/tmp/$dev:lockin.sig"
+  }
+
+  ############################
+  method get {{auto 0}} {
+    # oscilloscope setup
+    $dev cmd chan_set A 1 AC $range_a
+    $dev cmd chan_set B 1 AC $range_b
+    $dev cmd trig_set NONE 0.1 FALLING 0
+
+    set dt [expr $tconst/$npt]
+    # record signal
+    $dev cmd block AB 0 $npt $dt $sigfile
+    set ret [$dev cmd filter $sigfile -f lockin -F1000]
+    set ret [lindex $ret 0]
+    if {$ret == {}} {set ret [list 0 0 0]}
+    if {$chan == "lockin"} {return $ret}
+
+    set f [lindex $ret 0]
+    set x [lindex $ret 1]
+    set y [lindex $ret 2]
+    if {$chan == "lockin:XY"} { return [list $x $y] }
+  }
+  method get_auto {} { return [get 1] }
+
+  ############################
+  method list_ranges {} { return $ranges }
+  method list_tconsts {} { return $tconsts }
+
+  ############################
+  method set_range  {val} {
+    set n [lsearch -real -exact $ranges $val]
+    if {$n<0} {error "unknown range setting: $val"}
+    set range_a $val
+  }
+  method set_tconst {val} {
+    # can work with any tconst!
+    set tconst $val
+  }
+
+  ############################
+  method get_range  {} { return $range_a }
+  method get_tconst {} { return $tconst }
+  method get_status_raw {} { return "" }
+  method get_status {} { return "" }
+
+}
+
 
 ######################################################################
 } # namespace
