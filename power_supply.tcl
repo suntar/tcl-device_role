@@ -195,11 +195,32 @@ itcl::class keysight_n6700b {
   method get_volt {} {return [$dev cmd "meas:volt? (@$chan)"]}
 
   method cc_reset {} {
-    ## set current to actual current, turn output on
-    set c [$dev cmd "meas:curr? (@$chan)"]
-    $dev cmd "curr $c,(@$chan)"
-    $dev cmd "outp:prot:cle (@$chan)"
-    $dev cmd "outp on,(@$chan)"
+    set oc [$dev cmd "stat:oper:cond? (@$chan)"]
+    set qc [$dev cmd "stat:ques:cond? (@$chan)"]
+
+    # if device is in CC mode and no error conditions - do nothing
+    if {$oc&2 && $qc==0} {return}
+
+
+    # if OVP is triggered set minimum current and clear the OVP
+    if {$oc&4 && $qc&1} {
+      $dev cmd "curr $min_i,(@$chan)"
+      after 100
+      $dev cmd "outp:prot:cle (@$chan)"
+      after 100
+      return
+    }
+
+    # if output is off, set minimum current and turn on the output
+    if {$oc&4} {
+      $dev cmd "curr $min_i,(@$chan)"
+      after 100
+      $dev cmd "outp on,(@$chan)"
+      after 100
+      return
+    }
+
+    error "device is in strange state: [get_stat] ($oc:$qc)"
   }
 
   method get_stat {} {
