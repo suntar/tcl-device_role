@@ -90,8 +90,8 @@ get_stat {};    # get device status (short string to be shown in the user)
 
 Supported devices:
 
-* Keysight N6700B frame with N6762A or N6762A modules. Channel (1-4) and range
-(<channel>H or <channel>L) for N6762A can be selected: ps:1L
+* Keysight N6700B frame with N6731B, N6761A, N6762A modules. Channel (1-4) and range
+(<channel>H or <channel>L) for N6761A/N6762A can be selected: ps:1L
 
 * Korad/Velleman/Tenma 72-2550 power supply.
 

@@ -151,34 +151,32 @@ itcl::class keysight_n6700b {
 
     # detect module type:
     set mod [$dev cmd "syst:chan:mod? (@$chan)"]
-    set max_i [$dev cmd "curr:rang? (@$chan)"]
-    set max_v [$dev cmd "volt:rang? (@$chan)"]
-    switch -- $mod {
+    switch -glob -- $mod {
       N6731B {
         set min_i 0.06
         set min_i_step 1e-2
-        set min_v 0
       }
-      N6762A {
-        # module has two current ranges: 0.1 and 3A
+      N676[12]A {
+        # modules has two current ranges: 0.1 and 1.5 or 3A
         switch -- $range {
           H {
-            set R 3
+            $dev cmd "curr:rang 1,(@$chan)"
             set min_i 1e-3;
             set min_i_step 1e-4
           }
           L {
-            set R 0.09
+            $dev cmd "curr:rang 0.09,(@$chan)"
             set min_i 1e-4;
             set min_i_step 2e-6
           }
           default { error "$this: unknown range for $mod: $range" }
         }
-        $dev cmd "curr:rang $R,(@$chan)"
-        set min_v 0
       }
       default { error "$this: unknown module: $mod"}
     }
+    set max_i [$dev cmd "curr:rang? (@$chan)"]
+    set max_v [$dev cmd "volt:rang? (@$chan)"]
+    set min_v 0
   }
 
   method set_volt {val} { $dev cmd "volt $val,(@$chan)" }
