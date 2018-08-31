@@ -284,7 +284,7 @@ itcl::class leak_ag_vs {
 
   ############################
   method get {} {
-    set ret [leak_ag_vs cmd "?LP"]
+    set ret [$dev cmd "?LP"]
 
     set leak [lindex $ret 0]
     set pout [lindex $ret 1]
