@@ -266,4 +266,41 @@ itcl::class picoscope {
 
 
 ######################################################################
+# Use Agilent VS leak detector as a gauge.
+#
+# Use channels 1 or 2 to measure voltage from auxilary inputs,
+# channels XY RT FXY FRT to measure lockin X Y R Theta values
+
+itcl::class leak_ag_vs {
+  inherit interface
+  proc id_regexp {} {return {Agilent VS leak detector}}
+
+  variable chan;  # channel to use
+
+  constructor {d ch} {
+    # channels are not supported now
+    set dev $d
+  }
+
+  ############################
+  method get {} {
+    set ret [leak_ag_vs cmd "?LP"]
+
+    set leak [lindex $ret 0]
+    set pout [lindex $ret 1]
+    set pin  [lindex $ret 2]
+    # Values can have leading zeros.
+    if {[string first "." $leak] == -1} {set leak "$leak.0"}
+    if {[string first "." $pout] == -1} {set pout "$pout.0"}
+    if {[string first "." $pin]  == -1} {set pin  "$pin.0"}
+
+    set pout [format %.4e [expr $pout/760000.0]]; # mtor->bar
+    set pin  [format %.4e [expr $pout/760000000.0]]; # utor->bar
+
+    return [list $leak $pout $pin]
+  }
+  method get_auto {} { return [get] }
+}
+
+######################################################################
 } # namespace
