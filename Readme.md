@@ -208,4 +208,4 @@ combinations. Full range/tconst/autorange support.
 Only autorange measurements are supported
 
 * PicoScope, lockin measurements with pico_rec+pico_filter program.
-Channels: lockin, lockin:XY
+Channels: lockin, lockin:XY, DC

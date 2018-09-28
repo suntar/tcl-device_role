@@ -206,7 +206,7 @@ itcl::class picoscope {
   common sigfile
 
   constructor {d ch} {
-    if {$ch!="lockin" && $ch!="lockin:XY"} {
+    if {$ch!="lockin" && $ch!="lockin:XY" && $ch!="DC"} {
       error "$this: bad channel setting: $ch"}
     set chan $ch
     set dev $d
@@ -216,28 +216,46 @@ itcl::class picoscope {
     set tconst  1.0
     set range_a 1.0
     set range_b 10.0
-    set sigfile "/tmp/$dev:lockin.sig"
+    set sigfile "/tmp/$dev:gauge.sig"
   }
 
   ############################
   method get {{auto 0}} {
-    # oscilloscope setup
-    $dev cmd chan_set A 1 AC $range_a
-    $dev cmd chan_set B 1 AC $range_b
-    $dev cmd trig_set NONE 0.1 FALLING 0
 
-    set dt [expr $tconst/$npt]
-    # record signal
-    $dev cmd block AB 0 $npt $dt $sigfile
-    set ret [$dev cmd filter $sigfile -f lockin -F1000]
-    set ret [lindex $ret 0]
-    if {$ret == {}} {set ret [list 0 0 0]}
-    if {$chan == "lockin"} {return $ret}
+    if {$chan=="lockin" || $chan=="lockin:XY"} {
+      # oscilloscope setup
+      $dev cmd chan_set A 1 AC $range_a
+      $dev cmd chan_set B 1 AC $range_b
+      $dev cmd trig_set NONE 0.1 FALLING 0
 
-    set f [lindex $ret 0]
-    set x [lindex $ret 1]
-    set y [lindex $ret 2]
-    if {$chan == "lockin:XY"} { return [list $x $y] }
+      set dt [expr $tconst/$npt]
+      # record signal
+      $dev cmd block AB 0 $npt $dt $sigfile
+
+      set ret [$dev cmd filter -f lockin $sigfile]
+      set ret [lindex $ret 0]
+      if {$ret == {}} {set ret [list 0 0 0]}
+      if {$chan == "lockin"} {return $ret}
+
+      set f [lindex $ret 0]
+      set x [lindex $ret 1]
+      set y [lindex $ret 2]
+      if {$chan == "lockin:XY"} { return [list $x $y] }
+    }
+    if {$chan=="DC"} {
+      # oscilloscope setup
+      $dev cmd chan_set A 1 DC $range_a
+      $dev cmd chan_set B 0 DC $range_b
+      $dev cmd trig_set NONE 0.1 FALLING 0
+
+      set dt [expr $tconst/$npt]
+      # record signal
+      $dev cmd block A 0 $npt $dt $sigfile
+      set ret [$dev cmd filter -f dc $sigfile]
+      set c1 [lindex $ret 0]
+      set c2 [lindex $ret 1]
+      return [list $c1 $c2]
+    }
   }
   method get_auto {} { return [get 1] }
 
