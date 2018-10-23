@@ -7,7 +7,7 @@ package require Device
 namespace eval device_role::ac_source {
 
 ######################################################################
-## Interface class. All power_supply driver classes are children of it
+## Interface class. All driver classes are children of it
 itcl::class interface {
   inherit device_role::base_interface
   proc id_regexp {} {}
@@ -95,7 +95,7 @@ itcl::class keysight_2ch {
 }
 
 ######################################################################
-# Use generator Keysight 33511B (1 channel) as a ac_source.
+# Use HP/Agilent/Keysight 1-channel generators as a ac_source.
 #
 # ID string:
 #Agilent
@@ -129,6 +129,51 @@ itcl::class keysight_33511B {
 
   method off {} {
     $dev cmd SOUR:APPLY:SIN 1,$min_v,0
+    $dev cmd OUTP OFF
+  }
+
+  method get_volt {} { return [$dev cmd "SOUR:VOLT?"] }
+  method get_freq {} { return [$dev cmd "SOUR:FREQ?"] }
+  method get_offs {} { return [$dev cmd "SOUR:VOLT:OFFS?"] }
+  method get_phase {} { return [$dev cmd "SOUR:PHAS?"] }
+
+  method set_volt {v}  { $dev cmd "SOUR:VOLT $v" }
+  method set_freq {v}  { $dev cmd "SOUR:FREQ $v" }
+  method set_offs {v}  { $dev cmd "SOUR:VOLT:OFFS $v" }
+  method set_phase {v} { $dev cmd "SOUR:PHAS $v" }
+
+  method set_sync {state} {
+    if {$state} { $dev cmd OUTP:SYNC ON }\
+    else        { $dev cmd OUTP:SYNC OFF }
+  }
+}
+
+itcl::class keysight_33220A {
+  inherit interface
+  proc id_regexp {} {return {,33220A,}}
+
+  constructor {d ch} {
+    if {$ch!={}} {error "channels are not supported for the device $d"}
+    set dev $d
+    set max_v 20
+    set min_v 0.002
+    $dev cmd VOLT:UNIT VPP
+    $dev cmd UNIT:ANGL DEG
+    $dev cmd SOUR:FUNC SIN
+    $dev cmd OUTP:LOAD INF
+  }
+
+  method set_ac {freq volt {offs 0}} {
+    $dev cmd APPLY:SIN $freq,$volt,$offs
+    $dev cmd OUTP ON
+  }
+
+  method set_ac_fast {freq volt {offs 0}} {
+    $dev cmd APPLY:SIN $freq,$volt,$offs
+  }
+
+  method off {} {
+    $dev cmd APPLY 1,$min_v,0
     $dev cmd OUTP OFF
   }
 

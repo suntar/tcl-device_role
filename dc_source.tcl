@@ -7,7 +7,7 @@ package require Device
 namespace eval device_role::dc_source {
 
 ######################################################################
-## Interface class. All power_supply driver classes are children of it
+## Interface class. All driver classes are children of it
 itcl::class interface {
   inherit device_role::base_interface
   proc id_regexp {} {}
@@ -68,7 +68,7 @@ itcl::class keysight_2ch {
 }
 
 ######################################################################
-# Use generator Keysight 33511B (1 channel) as a voltage_suply.
+# Use HP/Agilent/Keysight 33511B 1 channel generators as a voltage_suply.
 #
 # ID string:
 #Agilent
@@ -76,9 +76,9 @@ itcl::class keysight_2ch {
 #
 # No channels supported
 
-itcl::class keysight_33511B {
+itcl::class keysight_1ch {
   inherit interface
-  proc id_regexp {} {return {,33511B,}}
+  proc id_regexp {} {return {,(33511B|33220A),}}
 
   constructor {d ch} {
     if {$ch!={}} {error "channels are not supported for the device $d"}
