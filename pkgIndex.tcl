@@ -9,6 +9,7 @@ lappend _files "$dir/role.tcl"
 lappend _files "$dir/noise_source.tcl"
 lappend _files "$dir/ac_source.tcl"
 lappend _files "$dir/dc_source.tcl"
+lappend _files "$dir/pulse_source.tcl"
 lappend _files "$dir/power_supply.tcl"
 lappend _files "$dir/gauge.tcl"
 
