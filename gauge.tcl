@@ -187,8 +187,9 @@ itcl::class sr844 {
 ######################################################################
 # Use Picoscope as a gauge.
 #
-# Use channels 1 or 2 to measure voltage from auxilary inputs,
-# channels XY RT FXY FRT to measure lockin X Y R Theta values
+# Channels:
+#  lockin:XY
+#  DC
 
 itcl::class picoscope {
   inherit interface
@@ -286,8 +287,6 @@ itcl::class picoscope {
 ######################################################################
 # Use Agilent VS leak detector as a gauge.
 #
-# Use channels 1 or 2 to measure voltage from auxilary inputs,
-# channels XY RT FXY FRT to measure lockin X Y R Theta values
 
 itcl::class leak_ag_vs {
   inherit interface
