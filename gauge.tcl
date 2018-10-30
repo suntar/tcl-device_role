@@ -312,7 +312,7 @@ itcl::class leak_ag_vs {
     if {[string first "." $pin]  == -1} {set pin  "$pin.0"}
 
     set pout [format %.4e [expr $pout/760000.0]]; # mtor->bar
-    set pin  [format %.4e [expr $pout/760000000.0]]; # utor->bar
+    set pin  [format %.4e [expr $pin/760000000.0]]; # utor->bar
 
     return [list $leak $pout $pin]
   }
