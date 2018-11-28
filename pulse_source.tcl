@@ -39,9 +39,9 @@ itcl::class interface {
 #
 # No channels supported
 
-itcl::class keysight_33220A {
+itcl::class keysight_1ch {
   inherit interface
-  proc id_regexp {} {return {,33220A,}}
+  proc id_regexp {} {return {,(33509B|33511B|33220A),}}
 
   constructor {d ch} {
     if {$ch!={}} {error "channels are not supported for the device $d"}
