@@ -224,38 +224,98 @@ itcl::class picoscope {
   method get {{auto 0}} {
 
     if {$chan=="lockin" || $chan=="lockin:XY"} {
-      # oscilloscope setup
-      $dev cmd chan_set A 1 AC $range_a
-      $dev cmd chan_set B 1 AC $range_b
-      $dev cmd trig_set NONE 0.1 FALLING 0
 
       set dt [expr $tconst/$npt]
-      # record signal
-      $dev cmd block AB 0 $npt $dt $sigfile
+      set justinc 0; # avoid inc->dec loops
+      while {1} {
+        # oscilloscope setup
+        $dev cmd chan_set A 1 AC $range_a
+        $dev cmd chan_set B 1 AC $range_b
+        $dev cmd trig_set NONE 0.1 FALLING 0
+        # record signal
+        $dev cmd block AB 0 $npt $dt $sigfile
 
-      set ret [$dev cmd filter -f lockin $sigfile]
-      set ret [lindex $ret 0]
-      if {$ret == {}} {set ret [list 0 0 0]}
-      if {$chan == "lockin"} {return $ret}
+        # check for overload
+        set ovl [$dev cmd filter -c A -f overload $sigfile]
 
-      set f [lindex $ret 0]
-      set x [lindex $ret 1]
-      set y [lindex $ret 2]
-      if {$chan == "lockin:XY"} { return [list $x $y] }
+        # try to increase the range and repeat
+        if {$auto == 1 && $ovl == 1} {
+          set justinc 1
+          if {![catch {inc_range}]} continue
+        }
+
+        # if it is still overloaded
+        if {$ovl == 1} {
+          set x Ovl
+          set y Ovl
+          set f Ovl
+          break
+        }
+
+        # measure the value
+        set ret [$dev cmd filter -f lockin $sigfile]
+        set ret [lindex $ret 0]
+        if {$ret == {}} {
+          set f NaN
+          set x NaN
+          set y NaN
+          break
+        }
+        set f [lindex $ret 0]
+        set x [lindex $ret 1]
+        set y [lindex $ret 2]
+        set amp [expr sqrt($x**2+$y**2)]
+
+        # if amplitude is too small, try to decrease the range and repeat
+        if {$auto == 1 && $justinc == 0 && $amp < [expr 0.5*$range_a]} {
+          if {![catch {dec_range}]} continue
+        }
+        break
+      }
+      if {$chan == "lockin:XY"} {
+        return [list $x $y]
+      } else {
+        return [list $f $x $y]
+      }
     }
     if {$chan=="DC"} {
-      # oscilloscope setup
-      $dev cmd chan_set A 1 DC $range_a
-      $dev cmd chan_set B 0 DC $range_b
-      $dev cmd trig_set NONE 0.1 FALLING 0
-
+      set ch A
       set dt [expr $tconst/$npt]
-      # record signal
-      $dev cmd block A 0 $npt $dt $sigfile
-      set ret [$dev cmd filter -f dc $sigfile]
-      set c1 [lindex $ret 0]
-      set c2 [lindex $ret 1]
-      return [list $c1 $c2]
+      set justinc 0; # avoid inc->dec loops
+
+      while {1} {
+        # oscilloscope setup
+        $dev cmd chan_set $ch 1 DC $range_a
+        $dev cmd trig_set NONE 0.1 FALLING 0
+        # record signal
+        $dev cmd block $ch 0 $npt $dt $sigfile
+
+        # check for overload
+        set ovl [$dev cmd filter -c $ch -f overload $sigfile]
+
+        # try to increase the range and repeat
+        if {$auto == 1 && $ovl == 1} {
+          set justinc 1;
+          if {![catch {inc_range}]} continue
+        }
+
+        # if it is still overloaded
+        if {$ovl == 1} {
+          set ret Ovl
+          break
+        }
+
+        # measure the value
+        set ret [$dev cmd filter -f dc $sigfile]
+        set ret [lindex $ret 0]
+
+        # if amplitude is too small, try to decrease the range and repeat
+        if {$auto == 1 && $justinc==0 && $ret < [expr 0.5*$range_a]} {
+          if {![catch {dec_range}]} continue
+        }
+        break
+      }
+      return $ret
     }
   }
   method get_auto {} { return [get 1] }
@@ -270,6 +330,22 @@ itcl::class picoscope {
     if {$n<0} {error "unknown range setting: $val"}
     set range_a $val
   }
+
+  method dec_range {} {
+    set n [lsearch -real -exact $ranges $range_a]
+    if {$n<0} {error "unknown range setting: $range_a"}
+    if {$n==0} {error "range already at minimum: $range_a"}
+    set range_a [lindex $ranges [expr $n-1]]
+  }
+
+  method inc_range {} {
+    set n [lsearch -real -exact $ranges $range_a]
+    set nmax [expr {[llength $ranges] - 1}]
+    if {$n<0} {error "unknown range setting: $range_a"}
+    if {$n>=$nmax} {error "range already at maximum: $range_a"}
+    set range_a [lindex $ranges [expr $n+1]]
+  }
+
   method set_tconst {val} {
     # can work with any tconst!
     set tconst $val
