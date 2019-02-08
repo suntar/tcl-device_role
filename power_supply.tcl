@@ -19,6 +19,8 @@ itcl::class interface {
   public variable min_v; # min voltage
   public variable min_i_step; # min step in current
   public variable min_v_step; # min step in voltage
+  public variable i_prec; # current precision
+                          # (how measured value can deviate from set value)
 
   # methods which should be defined by driver:
   method set_volt {val} {}; # set maximum voltage
@@ -69,6 +71,7 @@ itcl::class TEST {
     set min_v 0.0
     set min_i_step 0.001
     set min_v_step 0.01
+    set i_prec 0.01
   }
   destructor {}
   method lock {} {}
@@ -127,14 +130,18 @@ itcl::class TEST {
 #
 # Supported modules:
 #  * N6731B
+#  * N6761A
 #  * N6762A
 # Use channels 1..4
 # For module N6762A use specify also range, L or H
+# For polarity switch (see elsewhere) add :P<N><M> suffix
+#  (pin N should switch to positive polarity, M to negative)
 #
 # Example:
 #  ps0:1H -- use device ps0, 1st channel (N6762A module in high range)
 #  ps0:2L -- use device ps0, 2nd channel (N6762A module in low range)
 #  ps0:3  -- use device ps0, 3rd channel (N6731B module)
+#  ps0:4:P67 -- use device ps0, 3rd channel with polarity switch (N6731B module)
 
 itcl::class keysight_n6700b {
   inherit interface
@@ -142,12 +149,19 @@ itcl::class keysight_n6700b {
 
   variable chan;  # channel to use (1..4)
   variable range; # range to use (H/L)
+  variable sw_pos; # positive and negative pins of the polarity
+  variable sw_neg; #   switch: 2..7 or 0 if no polarity switch used
+                   #   pin 1 used for voltage check
 
   constructor {d ch} {
     set dev $d
-    # parse channel name and range:
-    if {![regexp {([0-4])([HL]?)} $ch x chan range]} {
+    # parse channel name, range (H/L) and polarity pins (:P45):
+    set sw_pos 0
+    set sw_neg 0
+    if {![regexp {([0-4])([HL]?)(:P([2-7])([2-7]))?} $ch x chan range p0 sw_pos sw_neg]} {
       error "$this: bad channel setting: $ch"}
+
+    if {$sw_pos == $sw_neg} {error "same setting for positive and negative pin of polarity switch"}
 
     # detect module type:
     set mod [$dev cmd "syst:chan:mod? (@$chan)"]
@@ -155,6 +169,7 @@ itcl::class keysight_n6700b {
       N6731B {
         set min_i 0.06
         set min_i_step 1e-2
+        set i_prec 0.7; # we can set 0 and be at 0.06
       }
       N676[12]A {
         # modules has two current ranges: 0.1 and 1.5 or 3A
@@ -163,11 +178,13 @@ itcl::class keysight_n6700b {
             $dev cmd "curr:rang 1,(@$chan)"
             set min_i 1e-3;
             set min_i_step 1e-4
+            set i_prec 1.2e-3; # we can set 0 and be at 0.001
           }
           L {
             $dev cmd "curr:rang 0.09,(@$chan)"
             set min_i 1e-4;
             set min_i_step 2e-6
+            set i_prec 1.2e-4
           }
           default { error "$this: unknown range for $mod: $range" }
         }
@@ -177,10 +194,106 @@ itcl::class keysight_n6700b {
     set max_i [$dev cmd "curr:rang? (@$chan)"]
     set max_v [$dev cmd "volt:rang? (@$chan)"]
     set min_v 0
+    # if polarity switch is used, we can go to -max_i, -max_v
+    if {$sw_pos!=0 && $sw_neg!=0} {
+      set min_i [expr {-$max_i}]
+      set min_v [expr {-$max_v}]
+    }
   }
 
-  method set_volt {val} { $dev cmd "volt $val,(@$chan)" }
-  method set_curr {val} { $dev cmd "curr $val,(@$chan)" }
+  #################
+  ## methods for polarity switch
+
+  # Get digital port pin state (n=1..7).
+  # Value should be inverted if polarity is negative.
+  method get_pin {data n} {
+    set pol [string equal [$dev cmd "dig:pin$n:pol?"] "NEG"]
+    return [ expr {(($data >> ($n-1)) + $pol)%2} ]
+  }
+  # Set pin in the data.
+  # Value should be inverted if polarity is negative.
+  method set_pin {data n v} {
+    set pol [string equal [$dev cmd "dig:pin$n:pol?"] "NEG"]
+    set v [expr {($v+$pol)%2}]
+    set data [expr {1 << ($n-1) | $data}]
+    if {$v==0} { set data [expr {$data ^ 1 << ($n-1)}] }
+    return $data
+  }
+  # Get output polarity
+  method get_pol {chan sw_pos sw_neg} {
+    # Read digital port state.
+    set data [$dev cmd "dig:inp:data?"]
+    # Use pin1 to check relay power (see scheme).
+    if { ! [get_pin $data 1] } {
+      error "Failed to operate polarity switch. Check relay power." }
+    # Current pin settings (this works only of power is on)
+    set d1 [get_pin $data $sw_pos]
+    set d2 [get_pin $data $sw_neg]
+    if {$d1 == 0 && $d2 == 1} { return +1 }
+    if {$d1 == 1 && $d2 == 0} { return -1 }
+    error "Failed to operate polarity switch. Wrong pin setting: $d1 $d2"
+  }
+  # Set output polarity
+  method set_pol {pol chan sw_pos sw_neg} {
+    # Read digital port state.
+    set data [expr int([$dev cmd "dig:inp:data?"])]
+    # Use pin1 to check relay power (see scheme).
+    if { ! [get_pin $data 1] } {
+       error "Failed to operate polarity switch. Check relay power." }
+    # Current pin settings (this works only of power is on)
+    set d1in [get_pin $data $sw_pos]
+    set d2in [get_pin $data $sw_neg]
+    # Set positive/negative pin values.
+    # If pin is set to 0 then current goes through it.
+    set d1 [expr {$pol<=0}]
+    set d2 [expr {$pol>0}]
+    # No need to switch pins?
+    if { $d1 == $d1in && $d2 == $d2in } { return }
+    # Set pins
+    set data [set_pin $data $sw_pos $d1]
+    set data [set_pin $data $sw_neg $d2]
+    $dev cmd "DIG:OUTP:DATA $data"
+    # Check new state:
+    if { $data != [$dev cmd "DIG:INP:DATA?"] } {
+      error "Failed to operate polarity switch. Wrong pin setting."}
+  }
+
+  #################
+  method set_volt {val} {
+    # No polarity switch or zero current:
+    if {($sw_pos==0 || $sw_neg==0) || $val == 0} {
+      $dev cmd "volt $val,(@$chan)"
+      return
+    }
+    # set channel polarity, set current
+    set_pol $val $chan $sw_pos $sw_neg
+    $dev cmd "volt [expr abs($val)],(@$chan)"
+  }
+
+  method set_curr {val} {
+    # No polarity switch or zero current:
+    if {($sw_pos==0 || $sw_neg==0) || $val == 0} {
+      $dev cmd "curr $val,(@$chan)"
+      return
+    }
+    # set channel polarity, set current
+    set_pol $val $chan $sw_pos $sw_neg
+    $dev cmd "curr [expr abs($val)],(@$chan)"
+  }
+
+  method get_volt {} {
+    set val [$dev cmd "meas:volt? (@$chan)"]
+    if {$sw_pos!=0 && $sw_neg!=0} {
+      set val [expr {$val*[get_pol $chan $sw_pos $sw_neg]}] }
+    return $val
+  }
+  method get_curr {} {
+    set val [$dev cmd "meas:curr? (@$chan)"]
+    if {$sw_pos!=0 && $sw_neg!=0} {
+      set val [expr {$val*[get_pol $chan $sw_pos $sw_neg]}] }
+    return $val
+  }
+
   method set_ovp  {val} {
     $dev cmd "volt $val,(@$chan)"
     $dev cmd "volt:prot $val,(@$chan)"
@@ -189,8 +302,6 @@ itcl::class keysight_n6700b {
     $dev cmd "curr $val,(@$chan)"
     $dev cmd "curr:prot $val,(@$chan)"
   }
-  method get_curr {} {return [$dev cmd "meas:curr? (@$chan)"]}
-  method get_volt {} {return [$dev cmd "meas:volt? (@$chan)"]}
 
   method cc_reset {} {
     set oc [$dev cmd "stat:oper:cond? (@$chan)"]
@@ -200,18 +311,18 @@ itcl::class keysight_n6700b {
     if {$oc&2 && $qc==0} {return}
 
 
-    # if OVP is triggered set minimum current and clear the OVP
+    # if OVP is triggered set zero current and clear the OVP
     if {$oc&4 && $qc&1} {
-      $dev cmd "curr $min_i,(@$chan)"
+      $dev cmd "curr 0,(@$chan)"
       after 100
       $dev cmd "outp:prot:cle (@$chan)"
       after 100
       return
     }
 
-    # if output is off, set minimum current and turn on the output
+    # if output is off, set zero current and turn on the output
     if {$oc&4} {
-      $dev cmd "curr $min_i,(@$chan)"
+      $dev cmd "curr 0,(@$chan)"
       after 100
       $dev cmd "outp on,(@$chan)"
       after 100
@@ -273,6 +384,7 @@ itcl::class tenma_base {
     set min_v 0.0
     set min_i_step 0.001
     set min_v_step 0.01
+    set i_prec 0.01
   }
 
   method set_volt {val} {
