@@ -204,6 +204,21 @@ itcl::class keysight_n6700b {
   #################
   ## methods for polarity switch
 
+  # check relay power
+  method check_power {} {
+    # pin1 should be 1 with NEG or POS polarity
+    # depending on the pin state (which we do not know)
+    set data [$dev cmd "dig:inp:data?"]
+    if { [get_pin $data 1] } { return }
+    # revert polarity and try again:
+    set pol [string equal [$dev cmd "dig:pin1:pol?"] "NEG"]
+    $dev cmd "dig:pin1:pol [expr $pol?{POS}:{NEG}]"
+    set data [$dev cmd "dig:inp:data?"]
+    if { [get_pin $data 1] } { return }
+    # fail:
+    error "Failed to operate polarity switch. Check relay power."
+  }
+
   # Get digital port pin state (n=1..7).
   # Value should be inverted if polarity is negative.
   method get_pin {data n} {
@@ -221,40 +236,25 @@ itcl::class keysight_n6700b {
   }
   # Get output polarity
   method get_pol {chan sw_pos sw_neg} {
-    # Read digital port state.
-    set data [$dev cmd "dig:inp:data?"]
-    # Use pin1 to check relay power (see scheme).
-    if { ! [get_pin $data 1] } {
-      error "Failed to operate polarity switch. Check relay power." }
-    # Current pin settings (this works only of power is on)
+    check_power
+    # Read current pin settings (this works only of power is on)
+    set data [expr int([$dev cmd "dig:inp:data?"])]
     set d1 [get_pin $data $sw_pos]
     set d2 [get_pin $data $sw_neg]
     if {$d1 == 0 && $d2 == 1} { return +1 }
     if {$d1 == 1 && $d2 == 0} { return -1 }
-    error "Failed to operate polarity switch. Wrong pin setting: $d1 $d2"
   }
   # Set output polarity
   method set_pol {pol chan sw_pos sw_neg} {
-    # Read digital port state.
+    check_power
+    # Set pins if needed
     set data [expr int([$dev cmd "dig:inp:data?"])]
-    # Use pin1 to check relay power (see scheme).
-    if { ! [get_pin $data 1] } {
-       error "Failed to operate polarity switch. Check relay power." }
-    # Current pin settings (this works only of power is on)
-    set d1in [get_pin $data $sw_pos]
-    set d2in [get_pin $data $sw_neg]
-    # Set positive/negative pin values.
-    # If pin is set to 0 then current goes through it.
-    set d1 [expr {$pol<=0}]
-    set d2 [expr {$pol>0}]
-    # No need to switch pins?
-    if { $d1 == $d1in && $d2 == $d2in } { return }
-    # Set pins
-    set data [set_pin $data $sw_pos $d1]
-    set data [set_pin $data $sw_neg $d2]
-    $dev cmd "DIG:OUTP:DATA $data"
+    set data1 $data
+    set data1 [set_pin $data1 $sw_pos [expr {$pol<=0}]]
+    set data1 [set_pin $data1 $sw_neg [expr {$pol>0}]]
+    if {$data1 != $data } {$dev cmd "DIG:OUTP:DATA $data1"}
     # Check new state:
-    if { $data != [$dev cmd "DIG:INP:DATA?"] } {
+    if { $data1 != [$dev cmd "DIG:INP:DATA?"] } {
       error "Failed to operate polarity switch. Wrong pin setting."}
   }
 
