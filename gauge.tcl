@@ -29,6 +29,49 @@ itcl::class interface {
   method get_status_raw {} {return 0};
 }
 
+######################################################################
+# Virtual multimeter
+itcl::class TESTmult {
+  inherit interface
+  proc id_regexp {} {}
+
+  variable chan;  # channel to use (1..2)
+
+  constructor {d ch} {set chan $ch}
+  destructor {}
+
+  ############################
+  method get {} {
+    set d1 [expr {int(rand()*10)-5}]
+    return $d1
+  }
+  method get_auto {} {
+    return [get]
+  }
+}
+
+######################################################################
+# Virtual leak_ag_vs detector
+itcl::class TESTleak_ag_vs {
+  inherit interface
+  proc id_regexp {} {}
+
+  variable chan;  # channel are not supported
+
+  constructor {d ch} {}
+  destructor {}
+
+  ############################
+  method get {} {
+    set d1 [expr {int(rand()*10)-5}]
+    set d2 [expr {rand()}]
+    set d3 [expr {rand()*1e-3}]
+    return [list $d1 $d2 $d3]
+  }
+  method get_auto {} {
+    return [get]
+  }
+}
 
 ######################################################################
 # Use Keysight 34461A as a gauge device.
@@ -45,22 +88,26 @@ itcl::class keysight_34461A {
   variable chan;  # channel to use (1..2)
 
   constructor {d ch} {
-    if {$ch!="ACI" && $ch!="DCI"\
-     && $ch!="ACV" && $ch!="DCV"\
-     && $ch!="R2" && $ch!="R4"} {
-      error "$this: bad channel setting: $ch"}
-    set chan $ch
+    switch -exact -- $ch {
+      DCV {  set cmd meas:volt:dc? }
+      ACV {  set cmd meas:volt:ac? }
+      DCI {  set cmd meas:curr:dc? }
+      ACI {  set cmd meas:curr:ac? }
+      R2  {  set cmd meas:res?     }
+      R4  {  set cmd meas:fres?    }
+      default {
+        error "$this: bad channel setting: $ch"
+        return
+      }
+    }
     set dev $d
+    set chan $ch
+    $dev cmd $cmd
   }
 
   ############################
   method get {} {
-    if {$chan=="DCV"} { return [$dev cmd meas:volt:dc?] }
-    if {$chan=="ACV"} { return [$dev cmd meas:volt:ac?] }
-    if {$chan=="DCI"} { return [$dev cmd meas:curr:dc?] }
-    if {$chan=="ACI"} { return [$dev cmd meas:curr:ac?] }
-    if {$chan=="R2"}  { return [$dev cmd meas:res?] }
-    if {$chan=="R4"}  { return [$dev cmd meas:fres?] }
+    return [$dev cmd "read?"]
   }
   method get_auto {} {
     return [get]
