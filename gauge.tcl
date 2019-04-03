@@ -72,51 +72,6 @@ itcl::class TEST {
   }
 }
 
-
-######################################################################
-# Virtual multimeter
-itcl::class TESTmult {
-  inherit interface
-  proc id_regexp {} {}
-
-  variable chan;  # channel to use (1..2)
-
-  constructor {d ch} {set chan $ch}
-  destructor {}
-
-  ############################
-  method get {} {
-    set d1 [expr {int(rand()*10)-5}]
-    return $d1
-  }
-  method get_auto {} {
-    return [get]
-  }
-}
-
-######################################################################
-# Virtual leak_ag_vs detector
-itcl::class TESTleak_ag_vs {
-  inherit interface
-  proc id_regexp {} {}
-
-  variable chan;  # channel are not supported
-
-  constructor {d ch} {}
-  destructor {}
-
-  ############################
-  method get {} {
-    set d1 [expr {int(rand()*10)-5}]
-    set d2 [expr {rand()}]
-    set d3 [expr {rand()*1e-3}]
-    return [list $d1 $d2 $d3]
-  }
-  method get_auto {} {
-    return [get]
-  }
-}
-
 ######################################################################
 # Use Keysight 34461A as a gauge device.
 #
