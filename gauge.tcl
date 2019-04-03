@@ -31,6 +31,50 @@ itcl::class interface {
 
 ######################################################################
 # Virtual multimeter
+itcl::class TEST {
+  inherit interface
+  proc id_regexp {} {}
+
+  variable chan;  # channel to use (R1, R2,... T1, T2,...)
+  variable type;  # R - random, T - 10s time sweep
+  variable n;     # number of values 0..maxn
+  variable maxn 10;
+  variable tsweep 10;
+
+  constructor {d ch} {
+    set chan $ch
+    set type R
+    set n    1
+    if {$ch == {}} {
+    }
+    if {$ch!={} && ![regexp {^(T|R)([0-9]+$)} $chan v type n]} {
+      error "Unknown channel setting: $ch"
+    }
+    if {$n<1 || $n>$maxn} {
+      error "Bad number in the cannel setting: $ch"
+    }
+  }
+  destructor {}
+
+  ############################
+  method get {} {
+    set data {}
+    for {set i 0} {$i<$n} {incr i} {
+      set v 0
+      if {$type=={R}} { set v [expr rand()] }
+      if {$type=={T}} { set v [expr {[clock milliseconds]%($tsweep*1000)}] }
+      lappend data $v
+    }
+    return $data
+  }
+  method get_auto {} {
+    return [get]
+  }
+}
+
+
+######################################################################
+# Virtual multimeter
 itcl::class TESTmult {
   inherit interface
   proc id_regexp {} {}
