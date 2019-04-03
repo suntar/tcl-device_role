@@ -25,7 +25,9 @@ proc DeviceRole {name role} {
   set n ::device_role::${role}
 
   # return test device
-  if {$name == "TEST"} {return [${n}::TEST #auto]}
+  if {[string first TEST $name ]!=-1} {
+    return [${n}::${name} #auto ${name} $chan]
+  }
 
   # Create device if needed, ask for ID.
   # Many drivers can use a single device (different channels,
