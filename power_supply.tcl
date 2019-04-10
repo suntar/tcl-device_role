@@ -63,7 +63,7 @@ itcl::class TEST {
   variable OCP 0
   variable mode OFF
 
-  constructor {} {
+  constructor {d ch} {
     set dev {}
     set max_i 3.09
     set min_i 0.0
