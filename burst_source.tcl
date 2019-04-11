@@ -86,26 +86,14 @@ itcl::class TEST {
 itcl::class keysight_2ch {
   inherit interface keysight_gen
   proc test_id {id} {keysight_gen::test_id $id}
-  variable chan;  # channel to use (1..2)
-  variable sour_pref
 
   constructor {d ch id} {
-    if {[get_nch $id] == 1} {
-      if {$ch!={}} {error "channels are not supported for the device $d"}
-      set sour_pref {}
-      set chan {}
-    }\
-    else {
-      if {$ch!=1 && $ch!=2} {
-        error "$this: bad channel setting: $ch"}
-      set sour_pref "SOUR${ch}:"
-      set chan $ch
-    }
+    set_ch $ch $id
     set dev $d
     set max_v 20
     set min_v 0.002
     ## Burst mode with BUS trigger.
-    set_par $dev "${sour_pref}FUNC"        "SIN"
+    set_par $dev "${sour_pref}FUNC"        "SIN"; # should be before switching to BURST mode
     set_par $dev "${sour_pref}VOLT:UNIT"   "VPP"
     set_par $dev "${sour_pref}PHASE"       0; # BURST mode requires zero phase!
     set_par $dev "OUTP${chan}:LOAD"        "INF"

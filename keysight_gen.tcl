@@ -1,6 +1,10 @@
 ## common functions for all keysight generators
 itcl::class keysight_gen {
 
+  variable chan;      # channel to use (1..2)
+  variable sour_pref; # 2-channel generators need SOUR1 or SOUR2
+                      # prefix for some commends
+
   # return model name for known generator id
   proc test_id {id} {
     # 1-channel
@@ -13,17 +17,31 @@ itcl::class keysight_gen {
     if {[regexp {,33522A,} $id]} {return {33522A}}
   }
 
-  # return number of channel for any generator
-  proc get_nch {id} {
+  # Check channel setting and set "chan" and "sour_pref" variables
+  proc set_ch {ch id} {
+    # Get the model name from id (using test_id function).
+    # Set number of channels for this model.
     set model [test_id $id]
     switch -exact -- $model {
-      33509B { return 1 }
-      33511B { return 1 }
-      33520A { return 1 }
-      33220A { return 1 }
-      33510B { return 2 }
-      33522A { return 2 }
+      33509B -
+      33511B -
+      33520A -
+      33220A { set nch 1 }
+      33510B -
+      33522A { set nch 2 }
       default { error "keysight_gen::get_nch: unknown model: $model" }
+    }
+    # check channel setting and set "chan" and "sour_pref" variables
+    if {$nch == 1} {
+      if {$ch!={}} {error "channels are not supported for the device $d"}
+      set sour_pref {}
+      set chan {}
+    }\
+    else {
+      if {$ch!=1 && $ch!=2} {
+        error "$this: bad channel setting: $ch"}
+      set sour_pref "SOUR${ch}:"
+      set chan $ch
     }
   }
 
