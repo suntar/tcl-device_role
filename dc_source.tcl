@@ -134,8 +134,6 @@ itcl::class keysight_1ch {
 #
 # Use channels 1 or 2 to set auxilary output
 
-package require Itcl
-
 itcl::class sr844 {
   inherit interface
 
