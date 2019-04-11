@@ -68,7 +68,7 @@ set dev [DeviceRole TEST power_supply]
 
 #### power_supply -- a power supply with constant current and constant voltage modes
 
-Parameters and commands (see `power_supply/Base.tcl`):
+Parameters and commands (see `power_supply.tcl`):
 
 ```tcl
 variable max_i; # max current
@@ -103,7 +103,7 @@ Polarity switch is supported (channel ps:1L:P<n><m>)
 ---
 #### dc_source -- a simple DC voltage source
 
-Parameters and commands (see `dc_source/Base.tcl`):
+Parameters and commands (see `dc_source.tcl`):
 ```tcl
 variable max_v; # max voltage
 variable min_v; # min voltage
@@ -116,22 +116,21 @@ off {};         # turn the output off
 
 Supported devices:
 
-* Korad/Velleman/Tenma 72-2540 power supply.
-
-* Korad/Velleman/Tenma 72-2550 power supply.
+* Korad/Velleman/Tenma 72-2535, 72-2540, 72-2550 power supplies.
 
 * SR844 lock-in (auxilary outputs). Use channels 1 or 2 to select the output.
 
-* Keysight 33511B generator (1 channel).
+* Keysight/Agilent/HP 33509B, 33511B, 33220A 1-channel generators.
 
-* Keysight/Agilent/HP 2-channel generators 33510B and 33522A. Use channels 1 or 2 to select the output.
+* Keysight/Agilent/HP 33510B and 33522A 2-channel generators. Use
+channels 1 or 2 to select the output.
 
 * TEST
 
 ---
 #### ac_source -- AC voltage source
 
-Parameters and commands (see `voltage_supply/Base.tcl`):
+Parameters and commands (see `ac_source.tcl`):
 ```tcl
 variable max_v; # max voltage
 variable min_v; # min voltage
@@ -154,17 +153,18 @@ off {};           # turn the output off
 
 Supported devices:
 
-* Keysight 33511B generator (1 channel).
+* Keysight/Agilent/HP 33509B, 33511B, 33220A 1-channel generators.
 
-* Keysight/Agilent/HP 2-channel generators 33510B and 33522A. Use channels 1 or 2 to select the output.
-set_ac command sets sync signal to follow the current channel.
+* Keysight/Agilent/HP 33510B and 33522A 2-channel generators. Use
+channels 1 or 2 to select the output. set_ac command sets sync signal to
+follow the current channel.
 
 * TEST
 
 ---
 #### noise_source -- noise source
 
-Parameters and commands (see `voltage_supply/Base.tcl`):
+Parameters and commands (see `noise_source.tcl`):
 ```tcl
 variable max_v; # max voltage
 variable min_v; # min voltage
@@ -179,16 +179,48 @@ off {};          # turn the output off
 
 Supported devices:
 
-* Keysight 33511B generator (1 channel).
+* Keysight/Agilent/HP 33509B, 33511B, 33220A 1-channel generators.
 
-* Keysight/Agilent/HP 2-channel generators 33510B and 33522A. Use channels 1 or 2 to select the output.
+* Keysight/Agilent/HP 33510B and 33522A 2-channel generators. Use channels 1 or 2 to select the output.
+
+* TEST
+
+---
+#### pulse_source -- pulse source
+
+Parameters and commands (see `pulse_source.tcl`):
+```tcl
+variable max_v; # max voltage
+variable min_v; # min voltage
+
+set_pulse {freq volt cycles {offs 0} {ph 0}};
+do_pulse  {};
+
+set_volt  {};    # get voltage value
+set_freq  {};    # get frequency value
+set_offs  {};    # get offset value
+set_cycl  {};    # get cycles value
+set_phase {};    # get phase
+
+get_volt  {v};    # get voltage value
+get_freq  {v};    # get frequency value
+get_offs  {v};    # get offset value
+get_cycl  {v};    # get cycles value
+get_phase {v};    # get phase
+```
+
+Supported devices:
+
+* Keysight/Agilent/HP 33509B, 33511B, 33220A 1-channel generators.
+
+* Keysight/Agilent/HP 33510B, 33522A, 2-channel generators. Use channels 1 or 2 to select the output.
 
 * TEST
 
 ---
 #### gauge -- a gauge device
 
-Parameters and commands (see `gauge/Base.tcl`):
+Parameters and commands (see `gauge.tcl`):
 ```tcl
 get {} {}; # do the measurement, return one or more numbers
 
@@ -205,12 +237,17 @@ get_tconst {} {}; # get current time constant setting
 
 Supported devices:
 
+* Keysight 34461A multimeter. Use channels ACI, DCI, ACV, DCV, R2, R4.
+Only autorange measurements are supported.
+
 * SR844 lock-in. Use channels 1 or 2 to select auxilary input,
 use channels XY, RT, FXY, FRT to get X, Y, R, Theta, Frequency
 combinations. Full range/tconst/autorange support.
 
-* Keysight 34461A. Use channels ACI, DCI, ACV, DCV, R2, R4.
-Only autorange measurements are supported
-
-* PicoScope, lockin measurements with pico_rec+pico_filter program.
+* PicoScope, lockin and DC measurements with pico_rec+pico_filter program.
 Channels: lockin, lockin:XY, DC
+
+* Agilent VS leak detector. Returns three values: leak rate,
+output pressure (mbar), input pressure (mbar)
+
+* TEST. Channels R<N>... for N random numbers, T<N> for N increasing values
