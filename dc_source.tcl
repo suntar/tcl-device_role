@@ -48,91 +48,50 @@ itcl::class TEST {
 }
 
 ######################################################################
-# Use HP/Agilent/Keysight 2-channel generators
-# as a DC source.
-#
-# ID strings:
-# Agilent Technologies,33510B,MY52201807,3.05-1.19-2.00-52-00
-# Agilent Technologies,33522A,MY50005619,2.03-1.19-2.00-52-00
-#
-# Use channels 1 or 2 to set output
+# Use HP/Agilent/Keysight 1- and 2-channel generators as a DC source.
 
 itcl::class keysight_2ch {
   inherit interface keysight_gen
-  proc test_id {id} { return [test_id_2ch $id] }
-
+  proc test_id {id} {keysight_gen::test_id $id}
   variable chan;  # channel to use (1..2)
+  variable sour_pref
 
   constructor {d ch id} {
-    if {$ch!=1 && $ch!=2} {
-      error "$this: bad channel setting: $ch"}
-    set chan $ch
+    if {[get_nch $id] == 1} {
+      if {$ch!={}} {error "channels are not supported for the device $d"}
+      set sour_pref {}
+      set chan {}
+    }\
+    else {
+      if {$ch!=1 && $ch!=2} {
+        error "$this: bad channel setting: $ch"}
+      set sour_pref "SOUR${ch}:"
+      set chan $ch
+    }
     set dev $d
     set max_v 10
     set min_v -10
     set min_v_step 0.001
-    set_par $dev "SOUR${chan}:BURST:STATE" "0"
-    set_par $dev "SOUR${chan}:VOLT:UNIT" "VPP"
+    set_par $dev "${sour_pref}BURST:STATE" "0"
+    set_par $dev "${sour_pref}VOLT:UNIT" "VPP"
     set_par $dev "OUTP${chan}:LOAD"      "INF"
-    set_par $dev "SOUR${chan}:FUNC"      "DC"
+    set_par $dev "${sour_pref}FUNC"      "DC"
   }
 
   method set_volt {val} {
-    set_par $dev "SOUR${chan}:VOLT:OFFS" $val
+    set_par $dev "${sour_pref}VOLT:OFFS" $val
     set_par $dev "OUTP${chan}" "1"
   }
   method set_volt_fast {val} {
     set_volt $val
   }
   method off {} {
-    set_par $dev "SOUR${chan}:VOLT:OFFS" 0
+    set_par $dev "${sour_pref}VOLT:OFFS" 0
     set_par $dev "OUTP${chan}" "0"
   }
   method get_volt {} {
     if {[$dev cmd "OUTP${chan}?"] == 0} {return 0}
-    return [$dev cmd "SOUR${chan}:VOLT:OFFS? "]
-  }
-}
-
-######################################################################
-# Use HP/Agilent/Keysight 33511B 1 channel generators as a voltage_suply.
-#
-# ID string:
-#Agilent
-#Technologies,33511B,MY52300310,2.03-1.19-2.00-52-00
-#
-# No channels supported
-
-itcl::class keysight_1ch {
-  inherit interface keysight_gen
-  proc test_id {id} { return [test_id_1ch $id] }
-
-  constructor {d ch id} {
-    if {$ch!={}} {error "channels are not supported for the device $d"}
-    set dev $d
-    set max_v 10
-    set min_v -10
-    set min_v_step 0.001
-    set_par $dev "BURST:STATE" "0"
-    set_par $dev "VOLT:UNIT" "VPP"
-    set_par $dev "OUTP:LOAD" "INF"
-    set_par $dev "FUNC"      "DC"
-  }
-
-  method set_volt {val} {
-    set_par $dev "VOLT:OFFS" $val
-    set_par $dev "OUTP" "1"
-  }
-  method set_volt_fast {val} {
-    set_volt $val
-  }
-  method off {} {
-    set_par $dev "VOLT:OFFS" 0
-    set_par $dev "OUTP" "0"
-  }
-  method get_volt {} {
-    if {[$dev cmd "OUTP"] == 0} {return 0}
-    return [$dev cmd "SOUR:VOLT:OFFS? "]
+    return [$dev cmd "${sour_pref}VOLT:OFFS? "]
   }
 }
 

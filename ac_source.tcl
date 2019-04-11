@@ -82,37 +82,48 @@ itcl::class TEST {
 }
 
 ######################################################################
-# Use HP/Agilent/Keysight 2-channel generators
-# as an ac_source.
+# Use HP/Agilent/Keysight 1- and 2-channel generators as an ac_source.
 #
-# ID string:
+# 2-channel devices (Use channels 1 or 2 to set output):
 # Agilent Technologies,33510B,MY52201807,3.05-1.19-2.00-52-00
 # Agilent Technologies,33522A,MY50005619,2.03-1.19-2.00-52-00
 #
-# Use channels 1 or 2 to set output
+# 1-channel devices (No channels supported):
+#Agilent
+#Technologies,33511B,MY52300310,2.03-1.19-2.00-52-00
+#
 
 itcl::class keysight_2ch {
   inherit interface keysight_gen
-  proc test_id {id} { return [test_id_2ch $id] }
+  proc test_id {id} {keysight_gen::test_id $id}
   variable chan;  # channel to use (1..2)
+  variable sour_pref
 
   constructor {d ch id} {
-    if {$ch!=1 && $ch!=2} {
-      error "$this: bad channel setting: $ch"}
-    set chan $ch
+    if {[get_nch $id] == 1} {
+      if {$ch!={}} {error "channels are not supported for the device $d"}
+      set sour_pref {}
+      set chan {}
+    }\
+    else {
+      if {$ch!=1 && $ch!=2} {
+        error "$this: bad channel setting: $ch"}
+      set sour_pref "SOUR${ch}:"
+      set chan $ch
+    }
     set dev $d
     set max_v 20
     set min_v 0.002
-    set_par $dev "SOUR${chan}:BURST:STATE" "0"
-    set_par $dev "SOUR${chan}:VOLT:UNIT" "VPP"
+    set_par $dev "${sour_pref}BURST:STATE" "0"
+    set_par $dev "${sour_pref}VOLT:UNIT" "VPP"
     set_par $dev "UNIT:ANGL"             "DEG"
-    set_par $dev "SOUR${chan}:FUNC"      "SIN"
+    set_par $dev "${sour_pref}FUNC"      "SIN"
     set_par $dev "OUTP${chan}:LOAD"      "INF"
   }
 
   method set_ac {freq volt {offs 0}} {
     err_clear $dev
-    $dev cmd SOUR${chan}:APPLY:SIN $freq,$volt,$offs
+    $dev cmd "${sour_pref}APPLY:SIN $freq,$volt,$offs"
     err_check $dev
     set_par $dev "OUTP${chan}" "1"
   }
@@ -122,93 +133,31 @@ itcl::class keysight_2ch {
   }
 
   method off {} {
-    set_par $dev "SOUR${chan}:VOLT" $min_v
+    set_par $dev "${sour_pref}VOLT" $min_v
     set_par $dev "OUTP${chan}" 0
   }
 
   method get_volt {}  {
     if {[$dev cmd "OUTP${chan}?"] == 0} {return 0}
-    return [$dev cmd "SOUR${chan}:VOLT?"]
+    return [$dev cmd "${sour_pref}VOLT?"]
   }
-  method get_freq {} { return [$dev cmd "SOUR${chan}:FREQ?"] }
-  method get_offs {} { return [$dev cmd "SOUR${chan}:VOLT:OFFS?"] }
-  method get_phase {} { return [$dev cmd "SOUR${chan}:PHAS?"] }
+  method get_freq  {} { return [$dev cmd "${sour_pref}FREQ?"] }
+  method get_offs  {} { return [$dev cmd "${sour_pref}VOLT:OFFS?"] }
+  method get_phase {} { return [$dev cmd "${sour_pref}PHAS?"] }
 
   method set_volt {v}  {
     if {$v==0} { off; return}
-    set_par $dev "SOUR${chan}:VOLT" $v
+    set_par $dev "${sour_pref}VOLT" $v
     set_par $dev "OUTP${chan}" 1
   }
-  method set_freq {v}  { set_par $dev "SOUR${chan}:FREQ" $v }
-  method set_offs {v}  { set_par $dev "SOUR${chan}:VOLT:OFFS" $v }
-  method set_phase {v} { set_par $dev "SOUR${chan}:PHAS" $v }
+  method set_freq {v}  { set_par $dev "${sour_pref}FREQ" $v }
+  method set_offs {v}  { set_par $dev "${sour_pref}VOLT:OFFS" $v }
+  method set_phase {v} { set_par $dev "${sour_pref}PHAS" $v }
 
   method set_sync {state} {
-    set_par $dev "OUTP:SYNC:SOUR" "CH${chan}"
-    if {$state} { set_par $dev "OUTP:SYNC" 1 }\
-    else        { set_par $dev "OUTP:SYNC" 0 }
-  }
-}
-
-######################################################################
-# Use HP/Agilent/Keysight 1-channel generators as a ac_source.
-#
-# ID string:
-#Agilent
-#Technologies,33511B,MY52300310,2.03-1.19-2.00-52-00
-#
-# No channels supported
-
-itcl::class keysight_1ch {
-  inherit interface keysight_gen
-  proc test_id {id} { return [test_id_1ch $id] }
-
-  constructor {d ch id} {
-    if {$ch!={}} {error "channels are not supported for the device $d"}
-    set dev $d
-    set max_v 20
-    set min_v 0.002
-    set_par $dev "BURST:STATE" "0"
-    set_par $dev "VOLT:UNIT" "VPP"
-    set_par $dev "UNIT:ANGL" "DEG"
-    set_par $dev "FUNC"      "SIN"
-    set_par $dev "OUTP:LOAD" "INF"
-  }
-
-  method set_ac {freq volt {offs 0}} {
-    err_clear $dev
-    $dev cmd APPLY:SIN $freq,$volt,$offs
-    err_check $dev "can't set APPLY:SIN $freq,$volt,$offs"
-    set_par $dev "OUTP" "1"
-  }
-
-  method set_ac_fast {freq volt {offs 0}} {
-    set_ac $freq $volt $offs
-  }
-
-  method off {} {
-    set_par $dev "VOLT" $min_v
-    set_par $dev "OUTP" 0
-  }
-
-  method get_volt {}  {
-    if {[$dev cmd "OUTP?"] == 0} {return 0}
-    return [$dev cmd "VOLT?"]
-  }
-  method get_freq {}  { return [$dev cmd "FREQ?"] }
-  method get_offs {}  { return [$dev cmd "VOLT:OFFS?"] }
-  method get_phase {} { return [$dev cmd "PHAS?"] }
-
-  method set_volt {v}  {
-    if {$v==0} { off; return}
-    set_par $dev "VOLT" $v
-    set_par $dev "OUTP" 1
-  }
-  method set_freq {v}  { set_par $dev "FREQ" $v }
-  method set_offs {v}  { set_par $dev "VOLT:OFFS" $v }
-  method set_phase {v} { set_par $dev "PHAS" $v }
-
-  method set_sync {state} {
+    if {$chan != {}} {
+      set_par $dev "OUTP:SYNC:SOUR" "CH${chan}"
+    }
     if {$state} { set_par $dev "OUTP:SYNC" 1 }\
     else        { set_par $dev "OUTP:SYNC" 0 }
   }

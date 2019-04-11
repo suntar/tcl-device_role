@@ -81,114 +81,65 @@ itcl::class TEST {
 }
 
 ######################################################################
-# Use HP/Agilent/Keysight 2-channel generators as a ac_source.
-#
-# No channels supported
+# Use HP/Agilent/Keysight 1- and 2-channel generators as a ac_source.
 
 itcl::class keysight_2ch {
   inherit interface keysight_gen
-  proc test_id {id} { return [test_id_2ch $id] }
+  proc test_id {id} {keysight_gen::test_id $id}
   variable chan;  # channel to use (1..2)
+  variable sour_pref
 
   constructor {d ch id} {
-    if {$ch!=1 && $ch!=2} {
-      error "$this: bad channel setting: $ch"}
-    set chan $ch
+    if {[get_nch $id] == 1} {
+      if {$ch!={}} {error "channels are not supported for the device $d"}
+      set sour_pref {}
+      set chan {}
+    }\
+    else {
+      if {$ch!=1 && $ch!=2} {
+        error "$this: bad channel setting: $ch"}
+      set sour_pref "SOUR${ch}:"
+      set chan $ch
+    }
     set dev $d
     set max_v 20
     set min_v 0.002
     ## Burst mode with BUS trigger.
-    set_par $dev "SOUR${chan}:FUNC"        "SIN"
-    set_par $dev "SOUR${chan}:VOLT:UNIT"   "VPP"
-    set_par $dev "SOUR${chan}:PHASE"       0; # BURST mode requires zero phase!
+    set_par $dev "${sour_pref}FUNC"        "SIN"
+    set_par $dev "${sour_pref}VOLT:UNIT"   "VPP"
+    set_par $dev "${sour_pref}PHASE"       0; # BURST mode requires zero phase!
     set_par $dev "OUTP${chan}:LOAD"        "INF"
     set_par $dev "TRIG:SOURCE"             "INF"
-    set_par $dev "SOUR${chan}:BURST:STATE" "1"
-    set_par $dev "SOUR${chan}:BURST:MODE"  "TRIG"
+    set_par $dev "${sour_pref}BURST:STATE" "1"
+    set_par $dev "${sour_pref}BURST:MODE"  "TRIG"
     set_par $dev "OUTP:SYNC"         1
     set_par $dev "OUTP${chan}"       1
   }
 
   method set_burst {fre amp cyc {offs 0} {ph 0}} {
-    set_par $dev "SOUR${chan}:BURST:NCYC"  $cyc
-    set_par $dev "SOUR${chan}:FREQ"        $fre
-    set_par $dev "SOUR${chan}:VOLT"        $amp
-    set_par $dev "SOUR${chan}:VOLT:OFFS"   $offs
-    set_par $dev "SOUR${chan}:BURST:PHASE" $ph
+    set_par $dev "${sour_pref}BURST:NCYC"  $cyc
+    set_par $dev "${sour_pref}FREQ"        $fre
+    set_par $dev "${sour_pref}VOLT"        $amp
+    set_par $dev "${sour_pref}VOLT:OFFS"   $offs
+    set_par $dev "${sour_pref}BURST:PHASE" $ph
   }
 
   method do_burst {} {
     $dev cmd *TRG
   }
 
-  method get_volt  {} { return [$dev cmd "SOUR${chan}:VOLT?"] }
-  method get_freq  {} { return [$dev cmd "SOUR${chan}:FREQ?"] }
-  method get_offs  {} { return [$dev cmd "SOUR${chan}:VOLT:OFFS?"] }
-  method get_cycl  {} { return [$dev cmd "SOUR${chan}:BURST:NCYC?"] }
-  method get_phase {} { return [$dev cmd "SOUR${chan}:BURST:PHASE?"] }
+  method get_volt  {} { return [$dev cmd "${sour_pref}VOLT?"] }
+  method get_freq  {} { return [$dev cmd "${sour_pref}FREQ?"] }
+  method get_offs  {} { return [$dev cmd "${sour_pref}VOLT:OFFS?"] }
+  method get_cycl  {} { return [$dev cmd "${sour_pref}BURST:NCYC?"] }
+  method get_phase {} { return [$dev cmd "${sour_pref}BURST:PHASE?"] }
 
-  method set_volt  {v} { set_par $dev "SOUR${chan}:VOLT" $v }
-  method set_freq  {v} { set_par $dev "SOUR${chan}:FREQ" $v }
-  method set_offs  {v} { set_par $dev "SOUR${chan}:VOLT:OFFS"  $v }
-  method set_cycl  {v} { set_par $dev "SOUR${chan}:BURST:NCYC" $v }
-  method set_phase {v} { set_par $dev "SOUR${chan}:BURST:PHASE" $v }
+  method set_volt  {v} { set_par $dev "${sour_pref}VOLT" $v }
+  method set_freq  {v} { set_par $dev "${sour_pref}FREQ" $v }
+  method set_offs  {v} { set_par $dev "${sour_pref}VOLT:OFFS"  $v }
+  method set_cycl  {v} { set_par $dev "${sour_pref}BURST:NCYC" $v }
+  method set_phase {v} { set_par $dev "${sour_pref}BURST:PHASE" $v }
 }
-
-######################################################################
-# Use HP/Agilent/Keysight 1-channel generators as a ac_source.
-#
-# No channels supported
-
-itcl::class keysight_1ch {
-  inherit interface keysight_gen
-  proc test_id {id} { return [test_id_1ch $id] }
-
-
-  constructor {d ch id} {
-    if {$ch!={}} {error "channels are not supported for the device $d"}
-    set dev $d
-    set max_v 20
-    set min_v 0.002
-    ## Burst mode with BUS trigger.
-    err_clear $dev
-    set_par $dev "FUNC"        "SIN"
-    set_par $dev "VOLT:UNIT"   "VPP"
-    set_par $dev "OUTP:LOAD"   "INF"
-    set_par $dev "TRIG:SOURCE" "INF"
-    set_par $dev "PHASE"        0; # BURST mode requires zero phase!
-    set_par $dev "BURST:STATE" "1"
-    set_par $dev "BURST:MODE"  "TRIG"
-    set_par $dev "OUTP:SYNC"   1
-    set_par $dev "OUTP"        1
-    err_check $dev
-  }
-
-  method set_burst {fre amp cyc {offs 0} {ph 0}} {
-    set_par $dev "BURST:NCYC"  $cyc
-    set_par $dev "FREQ"        $fre
-    set_par $dev "VOLT"        $amp
-    set_par $dev "VOLT:OFFS"   $offs
-    set_par $dev "BURST:PHASE" $ph
-  }
-
-  method do_burst {} {
-    $dev cmd *TRG
-  }
-
-  method get_volt  {} { return [$dev cmd "VOLT?"] }
-  method get_freq  {} { return [$dev cmd "FREQ?"] }
-  method get_offs  {} { return [$dev cmd "VOLT:OFFS?"] }
-  method get_cycl  {} { return [$dev cmd "BURST:NCYC?"] }
-  method get_phase {} { return [$dev cmd "BURST:PHASE?"] }
-
-  method set_volt  {v} { set_par $dev "VOLT" $v }
-  method set_freq  {v} { set_par $dev "FREQ" $v }
-  method set_offs  {v} { set_par $dev "VOLT:OFFS"  $v }
-  method set_cycl  {v} { set_par $dev "BURST:NCYC" $v }
-  method set_phase {v} { set_par $dev "BURST:PHASE" $v }
-
-}
-
 
 ######################################################################
 } # namespace

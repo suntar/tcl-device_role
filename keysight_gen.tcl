@@ -1,15 +1,30 @@
 ## common functions for all keysight generators
 itcl::class keysight_gen {
 
-  proc test_id_1ch {id} {
+  # return model name for known generator id
+  proc test_id {id} {
+    # 1-channel
     if {[regexp {,33509B,} $id]} {return {33509B}}
     if {[regexp {,33511B,} $id]} {return {33511B}}
     if {[regexp {,33520A,} $id]} {return {33520A}}
-  }
-
-  proc test_id_2ch {id} {
+    if {[regexp {,33520A,} $id]} {return {33220A}}
+    # 2-channel
     if {[regexp {,33510B,} $id]} {return {33510B}}
     if {[regexp {,33522A,} $id]} {return {33522A}}
+  }
+
+  # return number of channel for any generator
+  proc get_nch {id} {
+    set model [test_id $id]
+    switch -exact -- $model {
+      33509B { return 1 }
+      33511B { return 1 }
+      33520A { return 1 }
+      33220A { return 1 }
+      33510B { return 2 }
+      33522A { return 2 }
+      default { error "keysight_gen::get_nch: unknown model: $model" }
+    }
   }
 
   # set generator parameter if it is not set
