@@ -120,7 +120,7 @@ Supported devices:
 
 * SR844 lock-in (auxilary outputs). Use channels 1 or 2 to select the output.
 
-* Keysight/Agilent/HP 33509B, 33511B, 33220A 1-channel generators.
+* Keysight/Agilent/HP 33509B, 33511B, 33520A 1-channel generators.
 
 * Keysight/Agilent/HP 33510B and 33522A 2-channel generators. Use
 channels 1 or 2 to select the output.
@@ -153,7 +153,7 @@ off {};           # turn the output off
 
 Supported devices:
 
-* Keysight/Agilent/HP 33509B, 33511B, 33220A 1-channel generators.
+* Keysight/Agilent/HP 33509B, 33511B, 33520A, 33220A 1-channel generators.
 
 * Keysight/Agilent/HP 33510B and 33522A 2-channel generators. Use
 channels 1 or 2 to select the output. set_ac command sets sync signal to
@@ -179,7 +179,7 @@ off {};          # turn the output off
 
 Supported devices:
 
-* Keysight/Agilent/HP 33509B, 33511B, 33220A 1-channel generators.
+* Keysight/Agilent/HP 33509B, 33511B, 33520A 1-channel generators.
 
 * Keysight/Agilent/HP 33510B and 33522A 2-channel generators. Use channels 1 or 2 to select the output.
 
@@ -211,7 +211,7 @@ get_phase {v};    # get phase
 
 Supported devices:
 
-* Keysight/Agilent/HP 33509B, 33511B, 33220A 1-channel generators.
+* Keysight/Agilent/HP 33509B, 33511B, 33520A 1-channel generators.
 
 * Keysight/Agilent/HP 33510B, 33522A, 2-channel generators. Use channels 1 or 2 to select the output.
 
