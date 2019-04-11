@@ -63,7 +63,7 @@ itcl::class TEST {
   variable OCP 0
   variable mode OFF
 
-  constructor {d ch} {
+  constructor {d ch id} {
     set dev {}
     set max_i 3.09
     set min_i 0.0
@@ -155,7 +155,7 @@ itcl::class keysight_n6700b {
   variable sw_neg; #   switch: 2..7 or 0 if no polarity switch used
                    #   pin 1 used for voltage check
 
-  constructor {d ch} {
+  constructor {d ch id} {
     set dev $d
     # parse channel name, range (H/L) and polarity pins (:P45):
     set sw_pos 0
@@ -377,7 +377,7 @@ itcl::class tenma_base {
   inherit interface
   proc test_id {id} {}
 
-  constructor {d ch} {
+  constructor {d ch id} {
     if {$ch!={}} {error "channels are not supported for the device $d"}
     set dev $d
     set max_i 3.09
@@ -433,7 +433,7 @@ itcl::class tenma_72-2550 {
     if {[regexp {KORADKA6003PV2.0} $id]} {return {72-2550}}
   }
 
-  constructor {d ch} {
+  constructor {d ch id} {
     tenma_base::constructor $d $ch
   } {
     set max_i 3.09
@@ -448,7 +448,7 @@ itcl::class tenma_72-2550_v20 {
     if {[regexp {TENMA72-2550V2.0} $id]} {return {72-2550}}
   }
 
-  constructor {d ch} {
+  constructor {d ch id} {
     tenma_base::constructor $d $ch
   } {
     set max_i 3.09
@@ -463,7 +463,7 @@ itcl::class tenma_72-2540_v20 {
     if {[regexp {TENMA72-2540V2.0} $id]} {return {72-2540}}
   }
 
-  constructor {d ch} {
+  constructor {d ch id} {
     tenma_base::constructor $d $ch
   } {
     set max_i 5.09
@@ -479,7 +479,7 @@ itcl::class tenma_72-2540_v21 {
     if {[regexp {TENMA 72-2540 V2.1} $id]} {return {72-2540}}
   }
 
-  constructor {d ch} {
+  constructor {d ch id} {
     tenma_base::constructor $d $ch
   } {
     set max_i 5.09
@@ -495,7 +495,7 @@ itcl::class tenma_72-2535_v21 {
     if {[regexp {TENMA 72-2535 V2.1} $id]} {return {72-2535}}
   }
 
-  constructor {d ch} {
+  constructor {d ch id} {
     tenma_base::constructor $d $ch
   } {
     set max_i 3.09

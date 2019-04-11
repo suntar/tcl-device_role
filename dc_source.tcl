@@ -30,7 +30,7 @@ itcl::class TEST {
   proc test_id {id} {}
   variable volt
 
-  constructor {d ch} {
+  constructor {d ch id} {
     set volt  0
     set max_v 10
     set min_v 0
@@ -63,7 +63,7 @@ itcl::class keysight_2ch {
 
   variable chan;  # channel to use (1..2)
 
-  constructor {d ch} {
+  constructor {d ch id} {
     if {$ch!=1 && $ch!=2} {
       error "$this: bad channel setting: $ch"}
     set chan $ch
@@ -107,7 +107,7 @@ itcl::class keysight_1ch {
   inherit interface keysight_gen
   proc test_id {id} { return [test_id_1ch $id] }
 
-  constructor {d ch} {
+  constructor {d ch id} {
     if {$ch!={}} {error "channels are not supported for the device $d"}
     set dev $d
     set max_v 10
@@ -150,7 +150,7 @@ itcl::class sr844 {
   }
 
   variable chan;  # channel to use (1..2)
-  constructor {d ch} {
+  constructor {d ch id} {
     if {$ch!=1 && $ch!=2} {
       error "$this: bad channel setting: $ch"}
     set chan $ch
@@ -188,7 +188,7 @@ itcl::class tenma_base {
   inherit interface
   proc test_id {id} {}
 
-  constructor {d ch} {
+  constructor {d ch id} {
     if {$ch!={}} {error "channels are not supported for the device $d"}
     set dev $d
     set max_v 60.0
@@ -221,7 +221,7 @@ itcl::class tenma_72-2550 {
   proc test_id {id} {
     if {[regexp {KORADKA6003PV2.0} $id]} {return {72-2550}}
   }
-  constructor {d ch} {
+  constructor {d ch id} {
     tenma_base::constructor $d $ch
   } {
     set max_i 3.09
@@ -236,7 +236,7 @@ itcl::class tenma_72-2550_v20 {
     if {[regexp {TENMA72-2550V2.0} $id]} {return {72-2550}}
   }
 
-  constructor {d ch} {
+  constructor {d ch id} {
     tenma_base::constructor $d $ch
   } {
     set max_i 3.09
@@ -251,7 +251,7 @@ itcl::class tenma_72-2540_v20 {
     if {[regexp {TENMA72-2540V2.0} $id]} {return {72-2540}}
   }
 
-  constructor {d ch} {
+  constructor {d ch id} {
     tenma_base::constructor $d $ch
   } {
     set max_i 5.09
@@ -267,7 +267,7 @@ itcl::class tenma_72-2540_v21 {
     if {[regexp {TENMA 72-2540 V2.1} $id]} {return {72-2540}}
   }
 
-  constructor {d ch} {
+  constructor {d ch id} {
     tenma_base::constructor $d $ch
   } {
     set max_i 5.09
@@ -283,7 +283,7 @@ itcl::class tenma_72-2535_v21 {
     if {[regexp {TENMA 72-2535 V2.1} $id]} {return {72-2535}}
   }
 
-  constructor {d ch} {
+  constructor {d ch id} {
     tenma_base::constructor $d $ch
   } {
     set max_i 3.09

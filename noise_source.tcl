@@ -35,7 +35,7 @@ itcl::class TEST {
   variable bw
   variable offs
 
-  constructor {d ch} {
+  constructor {d ch id} {
     set volt 0
     set bw 1000
     set offs 0
@@ -74,7 +74,7 @@ itcl::class keysight_2ch {
   proc test_id {id} { return [test_id_2ch $id] }
   variable chan;  # channel to use (1..2)
 
-  constructor {d ch} {
+  constructor {d ch id} {
     if {$ch!=1 && $ch!=2} {
       error "$this: bad channel setting: $ch"}
     set chan $ch
@@ -127,7 +127,7 @@ itcl::class keysight_1ch {
   inherit interface keysight_gen
   proc test_id {id} { return [test_id_1ch $id] }
 
-  constructor {d ch} {
+  constructor {d ch id} {
     if {$ch!={}} {error "channels are not supported for the device $d"}
     set dev $d
     set max_v 20

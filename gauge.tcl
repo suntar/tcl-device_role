@@ -41,7 +41,7 @@ itcl::class TEST {
   variable maxn 10;
   variable tsweep 10;
 
-  constructor {d ch} {
+  constructor {d ch id} {
     set chan $ch
     set type R
     set n    1
@@ -88,7 +88,7 @@ itcl::class keysight_34461A {
 
   variable chan;  # channel to use (1..2)
 
-  constructor {d ch} {
+  constructor {d ch id} {
     switch -exact -- $ch {
       DCV {  set cmd meas:volt:dc? }
       ACV {  set cmd meas:volt:ac? }
@@ -158,7 +158,7 @@ itcl::class sr844 {
   common aux_range 10;    # auxilary input range: +/- 10V
   common aux_tconst 3e-4; # auxilary input bandwidth: 3kHz
 
-  constructor {d ch} {
+  constructor {d ch id} {
     if {$ch!=1 && $ch!=2 && $ch!="XY" && $ch!="RT" && $ch!="FXY" && $ch!="FRT"} {
       error "$this: bad channel setting: $ch"}
     set chan $ch
@@ -258,7 +258,7 @@ itcl::class picoscope {
   common npt 1e6; # point number
   common sigfile
 
-  constructor {d ch} {
+  constructor {d ch id} {
     if {$ch!="lockin" && $ch!="lockin:XY" && $ch!="DC"} {
       error "$this: bad channel setting: $ch"}
     set chan $ch
@@ -424,7 +424,7 @@ itcl::class leak_ag_vs {
 
   variable chan;  # channel to use
 
-  constructor {d ch} {
+  constructor {d ch id} {
     # channels are not supported now
     set dev $d
   }
