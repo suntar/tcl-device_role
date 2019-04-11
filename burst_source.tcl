@@ -1,10 +1,10 @@
 ######################################################################
-# pulse_source role
+# burst_source role
 
 package require Itcl
 package require Device
 
-namespace eval device_role::pulse_source {
+namespace eval device_role::burst_source {
 
 ######################################################################
 ## Interface class. All driver classes are children of it
@@ -17,8 +17,8 @@ itcl::class interface {
   public variable min_v; # min voltage
 
   # methods which should be defined by driver:
-  method set_pulse      {freq volt cycles {offs 0} {ph 0}} {};
-  method do_pulse {} {};
+  method set_burst      {freq volt cycles {offs 0} {ph 0}} {};
+  method do_burst {} {};
 
   method set_volt  {v} {};    # set voltage value
   method set_freq  {v} {};    # set frequency value
@@ -55,7 +55,7 @@ itcl::class TEST {
     set min_v 0
   }
 
-  method set_pulse {f a c {o 0} {p 0}} {
+  method set_burst {f a c {o 0} {p 0}} {
     if {$a < $min_v} {set a $min_v}
     if {$a > $max_v} {set a $max_v}
     set fre  $f
@@ -65,7 +65,7 @@ itcl::class TEST {
     set ph   $p
   }
 
-  method do_pulse {} {}
+  method do_burst {} {}
 
   method get_volt {} { return $amp }
   method get_freq {} { return $fre }
@@ -109,7 +109,7 @@ itcl::class keysight_2ch {
     set_par $dev "OUTP${chan}"       1
   }
 
-  method set_pulse {fre amp cyc {offs 0} {ph 0}} {
+  method set_burst {fre amp cyc {offs 0} {ph 0}} {
     set_par $dev "SOUR${chan}:BURST:NCYC"  $cyc
     set_par $dev "SOUR${chan}:FREQ"        $fre
     set_par $dev "SOUR${chan}:VOLT"        $amp
@@ -117,7 +117,7 @@ itcl::class keysight_2ch {
     set_par $dev "SOUR${chan}:BURST:PHASE" $ph
   }
 
-  method do_pulse {} {
+  method do_burst {} {
     $dev cmd *TRG
   }
 
@@ -163,7 +163,7 @@ itcl::class keysight_1ch {
     err_check $dev
   }
 
-  method set_pulse {fre amp cyc {offs 0} {ph 0}} {
+  method set_burst {fre amp cyc {offs 0} {ph 0}} {
     set_par $dev "BURST:NCYC"  $cyc
     set_par $dev "FREQ"        $fre
     set_par $dev "VOLT"        $amp
@@ -171,7 +171,7 @@ itcl::class keysight_1ch {
     set_par $dev "BURST:PHASE" $ph
   }
 
-  method do_pulse {} {
+  method do_burst {} {
     $dev cmd *TRG
   }
 

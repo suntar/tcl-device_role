@@ -186,15 +186,15 @@ Supported devices:
 * TEST
 
 ---
-#### pulse_source -- pulse source
+#### burst_source -- burst source
 
-Parameters and commands (see `pulse_source.tcl`):
+Parameters and commands (see `burst_source.tcl`):
 ```tcl
 variable max_v; # max voltage
 variable min_v; # min voltage
 
-set_pulse {freq volt cycles {offs 0}};
-do_pulse  {};
+set_burst {freq volt cycles {offs 0}};
+do_burst  {};
 
 get_volt  {};    # get voltage value
 get_freq  {};    # get frequency value

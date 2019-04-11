@@ -10,7 +10,7 @@ lappend _files "$dir/keysight_gen.tcl"
 lappend _files "$dir/noise_source.tcl"
 lappend _files "$dir/ac_source.tcl"
 lappend _files "$dir/dc_source.tcl"
-lappend _files "$dir/pulse_source.tcl"
+lappend _files "$dir/burst_source.tcl"
 lappend _files "$dir/power_supply.tcl"
 lappend _files "$dir/gauge.tcl"
 

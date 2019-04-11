@@ -5,7 +5,7 @@ source ./keysight_gen.tcl
 source ./ac_source.tcl
 source ./dc_source.tcl
 source ./noise_source.tcl
-source ./pulse_source.tcl
+source ./burst_source.tcl
 
 set devices [list TEST gen1 dgen1:2]
 
@@ -98,12 +98,12 @@ proc test_noise {} {
 }
 
 ###########################################################
-## pulse_source role
+## burst_source role
 
-proc test_pulse {} {
-  puts ">>> pulse_source"
+proc test_burst {} {
+  puts ">>> burst_source"
   foreach G $::devices {
-    set dev [DeviceRole $G pulse_source]
+    set dev [DeviceRole $G burst_source]
 
     set v1 0.25
     set f1 1000
@@ -111,7 +111,7 @@ proc test_pulse {} {
     set c1 10
     set p1 10
 
-    $dev set_pulse $f1 $v1 $c1 $o1 $p1
+    $dev set_burst $f1 $v1 $c1 $o1 $p1
     if {abs([$dev get_volt]-$v1) > 1e-6} {error "set/get volt"}
     if {abs([$dev get_freq]-$f1) > 1e-6} {error "set/get freq"}
     if {abs([$dev get_cycl]-$c1) > 1e-6} {error "set/get cycl"}
@@ -136,7 +136,7 @@ proc test_pulse {} {
   }
 }
 
-test_pulse
+test_burst
 test_dc
 test_ac
 test_noise
