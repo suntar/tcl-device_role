@@ -10,7 +10,7 @@ namespace eval device_role::pulse_source {
 ## Interface class. All driver classes are children of it
 itcl::class interface {
   inherit device_role::base_interface
-  proc id_regexp {} {}
+  proc test_id {id} {}
 
   # variables which should be filled by driver:
   public variable max_v; # max voltage
@@ -38,6 +38,7 @@ itcl::class interface {
 
 itcl::class TEST {
   inherit interface
+  proc test_id {id} {}
   variable fre
   variable amp
   variable cyc
@@ -87,7 +88,11 @@ itcl::class TEST {
 
 itcl::class keysight_1ch {
   inherit interface
-  proc id_regexp {} {return {,(33509B|33511B|33220A),}}
+  proc test_id {id} {
+    if {[regexp {,33509B,} $id]} {return {33509B}}
+    if {[regexp {,33511B,} $id]} {return {33511B}}
+    if {[regexp {,33520A,} $id]} {return {33520A}}
+  }
 
   constructor {d ch} {
     if {$ch!={}} {error "channels are not supported for the device $d"}
@@ -109,8 +114,8 @@ itcl::class keysight_1ch {
     if {[$dev cmd "TRIG:SOURCE?"] != "BUS"}    {$dev cmd "TRIG:SOURCE BUS"}
     if {[$dev cmd "BURST:STATE?"] != "1"}      {$dev cmd "BURST:STATE on"}
     if {[$dev cmd "BURST:MODE?"] != "TRIG"}    {$dev cmd "BURST:MODE TRIG"}
-    if {[$dev cmd "BURST:NCYC?"] != $cyc}      {$dev cmd "BURST:NCYC $cyc"}
     if {[$dev cmd "SOUR:FUNC?"] != "SIN"}      {$dev cmd "SOUR:FUNC SIN"}
+    if {[$dev cmd "BURST:NCYC?"] != $cyc}      {$dev cmd "BURST:NCYC $cyc"}
     if {[$dev cmd "SOUR:FREQ?"] != $fre}       {$dev cmd "SOUR:FREQ $fre"}
     if {[$dev cmd "SOUR:VOLT?"] != $amp}       {$dev cmd "SOUR:VOLT $amp"}
     if {[$dev cmd "SOUR:VOLT:OFFS?"] != $offs} {$dev cmd "SOUR:VOLT:OFFS $offs"}
@@ -128,7 +133,7 @@ itcl::class keysight_1ch {
   }
 
   method do_pulse {} {
-    $dev write *TRG
+    $dev cmd *TRG
   }
 
   method get_volt {} { return [$dev cmd "SOUR:VOLT?"] }

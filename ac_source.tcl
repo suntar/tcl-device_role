@@ -10,7 +10,7 @@ namespace eval device_role::ac_source {
 ## Interface class. All driver classes are children of it
 itcl::class interface {
   inherit device_role::base_interface
-  proc id_regexp {} {}
+  proc test_id {id} {}
 
   # variables which should be filled by driver:
   public variable max_v; # max voltage
@@ -39,6 +39,7 @@ itcl::class interface {
 
 itcl::class TEST {
   inherit interface
+  proc test_id {id} {}
   variable freq
   variable volt
   variable offs
@@ -88,8 +89,10 @@ itcl::class TEST {
 
 itcl::class keysight_2ch {
   inherit interface
-  proc id_regexp {} {return {,(33510B|33522A),}}
-
+  proc test_id {id} {
+    if {[regexp {,33510B,} $id]} {return {33510B}}
+    if {[regexp {,33522A,} $id]} {return {33522A}}
+  }
   variable chan;  # channel to use (1..2)
 
   constructor {d ch} {
@@ -147,7 +150,11 @@ itcl::class keysight_2ch {
 
 itcl::class keysight_1ch {
   inherit interface
-  proc id_regexp {} {return {,(33509B|33511B|33220A),}}
+  proc test_id {id} {
+    if {[regexp {,33509B,} $id]} {return {33509B}}
+    if {[regexp {,33511B,} $id]} {return {33511B}}
+    if {[regexp {,33520A,} $id]} {return {33520A}}
+  }
 
   constructor {d ch} {
     if {$ch!={}} {error "channels are not supported for the device $d"}
@@ -192,7 +199,9 @@ itcl::class keysight_1ch {
 
 itcl::class keysight_33220A {
   inherit interface
-  proc id_regexp {} {return {,33220A,}}
+  proc test_id {id} {
+    if {[regexp {,33220A,} $id]} {return {33220A}}
+  }
 
   constructor {d ch} {
     if {$ch!={}} {error "channels are not supported for the device $d"}

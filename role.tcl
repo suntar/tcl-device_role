@@ -50,9 +50,7 @@ proc DeviceRole {name role} {
   # Find all classes in the correct namespace.
   # Try to match ID string, return an object of the correct class.
   foreach m [itcl::find classes ${n}::*] {
-    set re [${m}::id_regexp]
-    if {$re == {}} continue; # skip base classes
-    if {[regexp $re $ID]} { return [$m #auto ${name} $chan] }
+    if {[${m}::test_id $ID] != {}} { return [$m #auto ${name} $chan] }
   }
   error "Do not know how to use device $name (id: $ID) as a $role"
 }

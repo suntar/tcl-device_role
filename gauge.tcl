@@ -10,7 +10,7 @@ namespace eval device_role::gauge {
 ## Interface class. All power_supply driver classes are children of it
 itcl::class interface {
   inherit device_role::base_interface
-  proc id_regexp {} {}
+  proc test_id {id} {}
 
   # methods which should be defined by driver:
   method get {} {}; # do the measurement, return one or more numbers
@@ -33,7 +33,7 @@ itcl::class interface {
 # Virtual multimeter
 itcl::class TEST {
   inherit interface
-  proc id_regexp {} {}
+  proc test_id {id} {}
 
   variable chan;  # channel to use (R1, R2,... T1, T2,...)
   variable type;  # R - random, T - 10s time sweep
@@ -82,7 +82,9 @@ itcl::class TEST {
 
 itcl::class keysight_34461A {
   inherit interface
-  proc id_regexp {} {return {,34461A,}}
+  proc test_id {id} {
+    if {[regexp {,34461A,} $id]} {return 1}
+  }
 
   variable chan;  # channel to use (1..2)
 
@@ -143,7 +145,9 @@ itcl::class keysight_34461A {
 
 itcl::class sr844 {
   inherit interface
-  proc id_regexp {} {return {,SR844,}}
+  proc test_id {id} {
+    if {[regexp {,SR844,} $id]} {return 1}
+  }
 
   variable chan;  # channel to use (1..2)
 
@@ -239,7 +243,9 @@ itcl::class sr844 {
 
 itcl::class picoscope {
   inherit interface
-  proc id_regexp {} {return {pico_rec}}
+  proc test_id {id} {
+    if {[regexp {pico_rec} $id]} {return 1}
+  }
 
   variable chan;  # channel to use
 
@@ -412,7 +418,9 @@ itcl::class picoscope {
 
 itcl::class leak_ag_vs {
   inherit interface
-  proc id_regexp {} {return {Agilent VS leak detector}}
+  proc test_id {id} {
+    if {$id == {Agilent VS leak detector}} {return 1}
+  }
 
   variable chan;  # channel to use
 

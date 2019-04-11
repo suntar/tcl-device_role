@@ -10,7 +10,7 @@ namespace eval device_role::dc_source {
 ## Interface class. All driver classes are children of it
 itcl::class interface {
   inherit device_role::base_interface
-  proc id_regexp {} {}
+  proc test_id {id} {}
 
   # variables which should be filled by driver:
   public variable max_v; # max voltage
@@ -27,6 +27,7 @@ itcl::class interface {
 # TEST device. Does nothing
 itcl::class TEST {
   inherit interface
+  proc test_id {id} {}
   variable volt
 
   constructor {d ch} {
@@ -58,7 +59,10 @@ itcl::class TEST {
 
 itcl::class keysight_2ch {
   inherit interface
-  proc id_regexp {} {return {,(33510B|33522A),}}
+  proc test_id {id} {
+    if {[regexp {,33510B,} $id]} {return {33510B}}
+    if {[regexp {,33522A,} $id]} {return {33522A}}
+  }
 
   variable chan;  # channel to use (1..2)
 
@@ -101,7 +105,11 @@ itcl::class keysight_2ch {
 
 itcl::class keysight_1ch {
   inherit interface
-  proc id_regexp {} {return {,(33509B|33511B|33220A),}}
+  proc test_id {id} {
+    if {[regexp {,33509B,} $id]} {return {33509B}}
+    if {[regexp {,33511B,} $id]} {return {33511B}}
+    if {[regexp {,33520A,} $id]} {return {33520A}}
+  }
 
   constructor {d ch} {
     if {$ch!={}} {error "channels are not supported for the device $d"}
@@ -136,11 +144,11 @@ itcl::class keysight_1ch {
 
 itcl::class sr844 {
   inherit interface
+  proc test_id {id} {
+    if {[regexp {,SR844,} $id]} {return 1}
+  }
 
   variable chan;  # channel to use (1..2)
-
-  proc id_regexp {} {return {,SR844,}}
-
   constructor {d ch} {
     if {$ch!=1 && $ch!=2} {
       error "$this: bad channel setting: $ch"}
@@ -177,7 +185,7 @@ itcl::class sr844 {
 # Base class
 itcl::class tenma_base {
   inherit interface
-  proc id_regexp {} {}
+  proc test_id {id} {}
 
   constructor {d ch} {
     if {$ch!={}} {error "channels are not supported for the device $d"}
@@ -209,8 +217,9 @@ itcl::class tenma_base {
 ##################################################
 itcl::class tenma_72-2550 {
   inherit tenma_base
-  proc id_regexp {} {return {KORADKA6003PV2.0}}
-
+  proc test_id {id} {
+    if {[regexp {KORADKA6003PV2.0} $id]} {return {72-2550}}
+  }
   constructor {d ch} {
     tenma_base::constructor $d $ch
   } {
@@ -222,7 +231,9 @@ itcl::class tenma_72-2550 {
 ##################################################
 itcl::class tenma_72-2550_v20 {
   inherit tenma_base
-  proc id_regexp {} {return {TENMA72-2550V2.0}}
+  proc test_id {id} {
+    if {[regexp {TENMA72-2550V2.0} $id]} {return {72-2550}}
+  }
 
   constructor {d ch} {
     tenma_base::constructor $d $ch
@@ -235,7 +246,9 @@ itcl::class tenma_72-2550_v20 {
 ##################################################
 itcl::class tenma_72-2540_v20 {
   inherit tenma_base
-  proc id_regexp {} {return {TENMA72-2540V2.0}}
+  proc test_id {id} {
+    if {[regexp {TENMA72-2540V2.0} $id]} {return {72-2540}}
+  }
 
   constructor {d ch} {
     tenma_base::constructor $d $ch
@@ -249,7 +262,9 @@ itcl::class tenma_72-2540_v20 {
 
 itcl::class tenma_72-2540_v21 {
   inherit tenma_base
-  proc id_regexp {} {return {TENMA 72-2540 V2.1}}
+  proc test_id {id} {
+    if {[regexp {TENMA 72-2540 V2.1} $id]} {return {72-2540}}
+  }
 
   constructor {d ch} {
     tenma_base::constructor $d $ch
@@ -263,7 +278,9 @@ itcl::class tenma_72-2540_v21 {
 
 itcl::class tenma_72-2535_v21 {
   inherit tenma_base
-  proc id_regexp {} {return {TENMA 72-2535 V2.1}}
+  proc test_id {id} {
+    if {[regexp {TENMA 72-2535 V2.1} $id]} {return {72-2535}}
+  }
 
   constructor {d ch} {
     tenma_base::constructor $d $ch
@@ -274,4 +291,4 @@ itcl::class tenma_72-2535_v21 {
 }
 
 ######################################################################
-} namespace
+} # namespace

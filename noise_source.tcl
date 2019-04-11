@@ -10,7 +10,7 @@ namespace eval device_role::noise_source {
 ## Interface class. All power_supply driver classes are children of it
 itcl::class interface {
   inherit device_role::base_interface
-  proc id_regexp {} {}
+  proc test_id {id} {}
 
   # variables which should be filled by driver:
   public variable max_v; # max voltage
@@ -30,6 +30,7 @@ itcl::class interface {
 
 itcl::class TEST {
   inherit interface
+  proc test_id {id} {}
   variable volt
   variable bw
   variable offs
@@ -70,10 +71,11 @@ itcl::class TEST {
 # Use channels 1 or 2 to set output
 itcl::class keysight_2ch {
   inherit interface
-  proc id_regexp {} {return {,(33510B|33522A),}}
-
+  proc test_id {id} {
+    if {[regexp {,33510B,} $id]} {return {33510B}}
+    if {[regexp {,33522A,} $id]} {return {33522A}}
+  }
   variable chan;  # channel to use (1..2)
-
   constructor {d ch} {
     if {$ch!=1 && $ch!=2} {
       error "$this: bad channel setting: $ch"}
@@ -120,7 +122,11 @@ itcl::class keysight_2ch {
 
 itcl::class keysight_1ch {
   inherit interface
-  proc id_regexp {} {return {,(33509B|33511B|33220A),}}
+  proc test_id {id} {
+    if {[regexp {,33509B,} $id]} {return {33509B}}
+    if {[regexp {,33511B,} $id]} {return {33511B}}
+    if {[regexp {,33520A,} $id]} {return {33520A}}
+  }
 
   constructor {d ch} {
     if {$ch!={}} {error "channels are not supported for the device $d"}

@@ -10,7 +10,7 @@ namespace eval device_role::power_supply {
 ## Interface class. All power_supply driver classes are children of it
 itcl::class interface {
   inherit device_role::base_interface
-  proc id_regexp {} {}
+  proc test_id {id} {}
 
   # variables which should be filled by driver:
   public variable max_i; # max current
@@ -54,7 +54,7 @@ itcl::class interface {
 
 itcl::class TEST {
   inherit interface
-  proc id_regexp {} {}
+  proc test_id {id} {}
 
   variable R 0.1
   variable I 0
@@ -145,7 +145,9 @@ itcl::class TEST {
 
 itcl::class keysight_n6700b {
   inherit interface
-  proc id_regexp {} {return {,N6700B,}}
+  proc test_id {id} {
+    if {[regexp {,N6700B,} $id]} {return 1}
+  }
 
   variable chan;  # channel to use (1..4)
   variable range; # range to use (H/L)
@@ -373,7 +375,7 @@ itcl::class keysight_n6700b {
 # Base class
 itcl::class tenma_base {
   inherit interface
-  proc id_regexp {} {}
+  proc test_id {id} {}
 
   constructor {d ch} {
     if {$ch!={}} {error "channels are not supported for the device $d"}
@@ -427,7 +429,9 @@ itcl::class tenma_base {
 ##################################################
 itcl::class tenma_72-2550 {
   inherit tenma_base
-  proc id_regexp {} {return {KORADKA6003PV2.0}}
+  proc test_id {id} {
+    if {[regexp {KORADKA6003PV2.0} $id]} {return {72-2550}}
+  }
 
   constructor {d ch} {
     tenma_base::constructor $d $ch
@@ -440,7 +444,9 @@ itcl::class tenma_72-2550 {
 ##################################################
 itcl::class tenma_72-2550_v20 {
   inherit tenma_base
-  proc id_regexp {} {return {TENMA72-2550V2.0}}
+  proc test_id {id} {
+    if {[regexp {TENMA72-2550V2.0} $id]} {return {72-2550}}
+  }
 
   constructor {d ch} {
     tenma_base::constructor $d $ch
@@ -453,7 +459,9 @@ itcl::class tenma_72-2550_v20 {
 ##################################################
 itcl::class tenma_72-2540_v20 {
   inherit tenma_base
-  proc id_regexp {} {return {TENMA72-2540V2.0}}
+  proc test_id {id} {
+    if {[regexp {TENMA72-2540V2.0} $id]} {return {72-2540}}
+  }
 
   constructor {d ch} {
     tenma_base::constructor $d $ch
@@ -467,7 +475,9 @@ itcl::class tenma_72-2540_v20 {
 
 itcl::class tenma_72-2540_v21 {
   inherit tenma_base
-  proc id_regexp {} {return {TENMA 72-2540 V2.1}}
+  proc test_id {id} {
+    if {[regexp {TENMA 72-2540 V2.1} $id]} {return {72-2540}}
+  }
 
   constructor {d ch} {
     tenma_base::constructor $d $ch
@@ -481,7 +491,9 @@ itcl::class tenma_72-2540_v21 {
 
 itcl::class tenma_72-2535_v21 {
   inherit tenma_base
-  proc id_regexp {} {return {TENMA 72-2535 V2.1}}
+  proc test_id {id} {
+    if {[regexp {TENMA 72-2535 V2.1} $id]} {return {72-2535}}
+  }
 
   constructor {d ch} {
     tenma_base::constructor $d $ch
