@@ -1,0 +1,143 @@
+#!/usr/bin/tclsh
+
+source ./role.tcl
+source ./keysight_gen.tcl
+source ./ac_source.tcl
+source ./dc_source.tcl
+source ./noise_source.tcl
+source ./pulse_source.tcl
+
+set devices [list TEST gen1 dgen1:2]
+
+###########################################################
+## ac_source role
+
+proc test_ac {} {
+  puts ">>> ac_source"
+  foreach G $::devices {
+    set dev [DeviceRole $G ac_source]
+
+    set v1 0.25
+    set f1 1000
+    set o1 0.1
+
+    $dev set_ac $f1 $v1 $o1
+    if {abs([$dev get_volt]-$v1) > 1e-6} {error "set/get volt"}
+    if {abs([$dev get_freq]-$f1) > 1e-6} {error "set/get freq"}
+    if {abs([$dev get_offs]-$o1) > 1e-6} {error "set/get offs"}
+
+    $dev off
+    if {abs([$dev get_volt]) > 1e-6} {error "set/get volt"}
+
+    set v1 0.35
+    set f1 2000
+    set o1 0.2
+    set p1 30
+    $dev set_volt $v1
+    $dev set_freq $f1
+    $dev set_offs $o1
+    $dev set_phase $p1
+    if {abs([$dev get_volt]-$v1) > 1e-6} {error "set/get volt"}
+    if {abs([$dev get_freq]-$f1) > 1e-6} {error "set/get freq"}
+    if {abs([$dev get_offs]-$o1) > 1e-6} {error "set/get offs"}
+    if {abs([$dev get_phase]-$p1) > 1e-6} {error "set/get phase"}
+    $dev set_sync 1
+  }
+}
+
+###########################################################
+## dc_source role
+
+proc test_dc {} {
+  puts ">>> dc_source"
+  foreach G $::devices {
+    set dev [DeviceRole $G dc_source]
+
+    set v1 0.25
+
+    $dev set_volt $v1
+    if {abs([$dev get_volt]-$v1) > 1e-6} {error "set/get volt"}
+    $dev off
+    if {abs([$dev get_volt]) > 1e-6} {error "set/get volt"}
+
+    set v1 0.35
+    $dev set_volt $v1
+    if {abs([$dev get_volt]-$v1) > 1e-6} {error "set/get volt"}
+
+  }
+}
+
+###########################################################
+## noise_source role
+
+proc test_noise {} {
+  puts ">>> noise_source"
+  foreach G $::devices {
+    set dev [DeviceRole $G noise_source]
+
+    set v1 0.25
+    set f1 1000
+    set o1 0.1
+
+    $dev set_noise $f1 $v1 $o1
+    if {abs([$dev get_volt]-$v1) > 1e-6} {error "set/get volt"}
+    if {abs([$dev get_bw]-$f1)   > 1e-6} {error "set/get bw"}
+    if {abs([$dev get_offs]-$o1) > 1e-6} {error "set/get offs"}
+
+    $dev off
+    if {abs([$dev get_volt]) > 1e-6} {error "set/get volt"}
+
+    set v1 0.35
+    set f1 2000
+    set o1 0.2
+    $dev set_noise $f1 $v1 $o1
+    if {abs([$dev get_volt]-$v1) > 1e-6} {error "set/get volt"}
+    if {abs([$dev get_bw]-$f1)   > 1e-6} {error "set/get bw"}
+    if {abs([$dev get_offs]-$o1) > 1e-6} {error "set/get offs"}
+  }
+}
+
+###########################################################
+## pulse_source role
+
+proc test_pulse {} {
+  puts ">>> pulse_source"
+  foreach G $::devices {
+    set dev [DeviceRole $G pulse_source]
+
+    set v1 0.25
+    set f1 1000
+    set o1 0.1
+    set c1 10
+    set p1 10
+
+    $dev set_pulse $f1 $v1 $c1 $o1 $p1
+    if {abs([$dev get_volt]-$v1) > 1e-6} {error "set/get volt"}
+    if {abs([$dev get_freq]-$f1) > 1e-6} {error "set/get freq"}
+    if {abs([$dev get_cycl]-$c1) > 1e-6} {error "set/get cycl"}
+    if {abs([$dev get_offs]-$o1) > 1e-6} {error "set/get offs"}
+    if {abs([$dev get_phase]-$p1) > 1e-6} {error "set/get phase"}
+
+    set v1 0.35
+    set f1 2000
+    set o1 0.2
+    set c1 200
+    set p1 20
+    $dev set_volt $v1
+    $dev set_freq $f1
+    $dev set_offs $o1
+    $dev set_cycl $c1
+    $dev set_phase $p1
+    if {abs([$dev get_volt]-$v1) > 1e-6} {error "set/get volt"}
+    if {abs([$dev get_freq]-$f1) > 1e-6} {error "set/get freq"}
+    if {abs([$dev get_cycl]-$c1) > 1e-6} {error "set/get cycl"}
+    if {abs([$dev get_offs]-$o1) > 1e-6} {error "set/get offs"}
+    if {abs([$dev get_phase]-$p1) > 1e-6} {error "set/get phase"}
+  }
+}
+
+test_pulse
+test_dc
+test_ac
+test_noise
+

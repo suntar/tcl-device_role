@@ -70,94 +70,99 @@ itcl::class TEST {
 #
 # Use channels 1 or 2 to set output
 itcl::class keysight_2ch {
-  inherit interface
-  proc test_id {id} {
-    if {[regexp {,33510B,} $id]} {return {33510B}}
-    if {[regexp {,33522A,} $id]} {return {33522A}}
-  }
+  inherit interface keysight_gen
+  proc test_id {id} { return [test_id_2ch $id] }
   variable chan;  # channel to use (1..2)
+
   constructor {d ch} {
     if {$ch!=1 && $ch!=2} {
       error "$this: bad channel setting: $ch"}
     set chan $ch
-
     set dev $d
     set max_v 20
     set min_v 0.002
+    set_par $dev "SOUR${chan}:BURST:STATE" "0"
+    set_par $dev "SOUR${chan}:VOLT:UNIT" "VPP"
+    set_par $dev "SOUR${chan}:FUNC"      "NOIS"
+    set_par $dev "OUTP${chan}:LOAD"      "INF"
   }
 
   method set_noise {bw volt {offs 0}} {
-    $dev cmd SOUR${chan}:FUNC NOISE
-    $dev cmd OUTP${chan}:LOAD INF
-    $dev cmd SOUR${chan}:VOLT:UNIT VPP
-    $dev cmd SOUR${chan}:VOLT $volt
-    $dev cmd SOUR${chan}:VOLT:OFFS $offs
-    $dev cmd SOUR${chan}:FUNC:NOISE:BANDWIDTH $bw
-    $dev cmd OUTP${chan} ON
+    set_par $dev "SOUR${chan}:VOLT" $volt
+    set_par $dev "SOUR${chan}:VOLT:OFFS" $offs
+    set_par $dev "SOUR${chan}:FUNC:NOISE:BANDWIDTH" $bw
+    set_par $dev "OUTP${chan}" "1"
   }
   method set_noise_fast {bw volt {offs 0}} {
-    $dev cmd SOUR${chan}:VOLT $volt
-    $dev cmd SOUR${chan}:VOLT:OFFS $offs
-    $dev cmd SOUR${chan}:FUNC:NOISE:BANDWIDTH $bw
+    set_noise $bw $volt $offs
   }
   method off {} {
-    $dev cmd SOUR${chan}:VOLT $min_v
-    $dev cmd SOUR${chan}:VOLT:OFFS 0
-    $dev cmd SOUR${chan}:FUNC:NOISE:BANDWIDTH 10e6
-    $dev cmd OUTP${chan} OFF
+    set_par $dev "SOUR${chan}:VOLT" $min_v
+    set_par $dev "SOUR${chan}:VOLT:OFFS" 0
+    set_par $dev "SOUR${chan}:FUNC:NOISE:BANDWIDTH" 10e6
+    set_par $dev "OUTP${chan}" "0"
   }
-  method get_volt {} { return [$dev cmd "SOUR${chan}:VOLT?"] }
-  method get_bw   {} { return [$dev cmd "SOUR${chan}:FUNC:NOISE:BANDWIDTH?"] }
-  method get_offs {} { return [$dev cmd "SOUR${chan}:VOLT:OFFS?"] }
+  method get_volt {} {
+    if {[$dev cmd "OUTP${chan}?"] == 0} {return 0}
+    return [$dev cmd "SOUR${chan}:VOLT?"]
+  }
+  method get_bw   {} {
+    return [$dev cmd "SOUR${chan}:FUNC:NOISE:BANDWIDTH?"]
+  }
+  method get_offs {} {
+    return [$dev cmd "SOUR${chan}:VOLT:OFFS?"]
+  }
 }
 
 ######################################################################
-# Use generator Keysight 33511B (1 channel) as a noise_source.
+# Use 1-channel Keysight/Agilent/HP generator as a noise_source.
 #
-# ID string:
+# ID strings:
 #Agilent
 #Technologies,33511B,MY52300310,2.03-1.19-2.00-52-00
 #
 # No channels supported
 
 itcl::class keysight_1ch {
-  inherit interface
-  proc test_id {id} {
-    if {[regexp {,33509B,} $id]} {return {33509B}}
-    if {[regexp {,33511B,} $id]} {return {33511B}}
-    if {[regexp {,33520A,} $id]} {return {33520A}}
-  }
+  inherit interface keysight_gen
+  proc test_id {id} { return [test_id_1ch $id] }
 
   constructor {d ch} {
     if {$ch!={}} {error "channels are not supported for the device $d"}
     set dev $d
     set max_v 20
     set min_v 0.002
+    set_par $dev "BURST:STATE" "0"
+    set_par $dev "VOLT:UNIT" "VPP"
+    set_par $dev "FUNC"      "NOIS"
+    set_par $dev "OUTP:LOAD" "INF"
   }
 
   method set_noise {bw volt {offs 0}} {
-    $dev cmd SOUR:FUNC NOISE
-    $dev cmd OUTP:LOAD INF
-    $dev cmd SOUR:VOLT:UNIT VPP
-    $dev cmd SOUR:VOLT $volt
-    $dev cmd SOUR:VOLT:OFFS $offs
-    $dev cmd SOUR:FUNC:NOISE:BANDWIDTH $bw
-    $dev cmd OUTP ON
+    set_par $dev "VOLT" $volt
+    set_par $dev "VOLT:OFFS" $offs
+    set_par $dev "FUNC:NOISE:BANDWIDTH" $bw
+    set_par $dev "OUTP" "1"
   }
   method set_noise_fast {bw volt {offs 0}} {
-    $dev cmd SOUR:VOLT $volt
-    $dev cmd SOUR:VOLT:OFFS $offs
-    $dev cmd SOUR:FUNC:NOISE:BANDWIDTH $bw
+    set_noise $bw $volt $offs
   }
   method off {} {
-    $dev cmd SOUR:VOLT $min_v
-    $dev cmd SOUR:VOLT:OFFS 0
-    $dev cmd SOUR:FUNC:NOISE:BANDWIDTH 10e6
-    $dev cmd OUTP OFF
+    set_par $dev "VOLT" $min_v
+    set_par $dev "VOLT:OFFS" 0
+    set_par $dev "FUNC:NOISE:BANDWIDTH" 10e6
+    set_par $dev "OUTP" "0"
   }
-  method get_volt {} { return [$dev cmd "SOUR:VOLT?"] }
-  method get_bw   {} { return [$dev cmd "SOUR:FUNC:NOISE:BANDWIDTH?"] }
-  method get_offs {} { return [$dev cmd "SOUR:VOLT:OFFS?"] }
+  method get_volt {} {
+    if {[$dev cmd "OUTP?"] == 0} {return 0}
+    return [$dev cmd "VOLT?"]
+  }
+  method get_bw   {} {
+    return [$dev cmd "FUNC:NOISE:BANDWIDTH?"]
+  }
+  method get_offs {} {
+    return [$dev cmd "VOLT:OFFS?"]
+  }
 }
 
 ######################################################################

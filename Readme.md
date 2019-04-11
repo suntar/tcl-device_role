@@ -179,7 +179,7 @@ off {};          # turn the output off
 
 Supported devices:
 
-* Keysight/Agilent/HP 33509B, 33511B, 33520A 1-channel generators.
+* Keysight/Agilent/HP 33509B, 33511B, 33520A, 33220A 1-channel generators.
 
 * Keysight/Agilent/HP 33510B and 33522A 2-channel generators. Use channels 1 or 2 to select the output.
 
@@ -193,25 +193,25 @@ Parameters and commands (see `pulse_source.tcl`):
 variable max_v; # max voltage
 variable min_v; # min voltage
 
-set_pulse {freq volt cycles {offs 0} {ph 0}};
+set_pulse {freq volt cycles {offs 0}};
 do_pulse  {};
 
-set_volt  {};    # get voltage value
-set_freq  {};    # get frequency value
-set_offs  {};    # get offset value
-set_cycl  {};    # get cycles value
-set_phase {};    # get phase
+get_volt  {};    # get voltage value
+get_freq  {};    # get frequency value
+get_offs  {};    # get offset value
+get_cycl  {};    # get cycles value
+get_phase {};    # get burst phase value
 
-get_volt  {v};    # get voltage value
-get_freq  {v};    # get frequency value
-get_offs  {v};    # get offset value
-get_cycl  {v};    # get cycles value
-get_phase {v};    # get phase
+set_volt  {v};    # get voltage value
+set_freq  {v};    # get frequency value
+set_offs  {v};    # get offset value
+set_cycl  {v};    # get cycles value
+set_phase {v};    # get burst phase value
 ```
 
 Supported devices:
 
-* Keysight/Agilent/HP 33509B, 33511B, 33520A 1-channel generators.
+* Keysight/Agilent/HP 33509B, 33511B, 33520A, 33220A 1-channel generators.
 
 * Keysight/Agilent/HP 33510B, 33522A, 2-channel generators. Use channels 1 or 2 to select the output.
 

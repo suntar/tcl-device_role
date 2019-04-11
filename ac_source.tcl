@@ -50,9 +50,13 @@ itcl::class TEST {
     set volt 0.1
     set offs  0
     set phase 0
+    set min_v 0
+    set max_v 10
   }
 
   method set_ac {f v {o 0}} {
+    if {$v < $min_v} {set v $min_v}
+    if {$v > $max_v} {set v $max_v}
     set freq $f
     set volt $v
     set offs $o
@@ -88,11 +92,8 @@ itcl::class TEST {
 # Use channels 1 or 2 to set output
 
 itcl::class keysight_2ch {
-  inherit interface
-  proc test_id {id} {
-    if {[regexp {,33510B,} $id]} {return {33510B}}
-    if {[regexp {,33522A,} $id]} {return {33522A}}
-  }
+  inherit interface keysight_gen
+  proc test_id {id} { return [test_id_2ch $id] }
   variable chan;  # channel to use (1..2)
 
   constructor {d ch} {
@@ -102,40 +103,50 @@ itcl::class keysight_2ch {
     set dev $d
     set max_v 20
     set min_v 0.002
-    $dev cmd SOUR${chan}:VOLT:UNIT VPP
-    $dev cmd UNIT:ANGL DEG
-    $dev cmd SOUR${chan}:FUNC SIN
-    $dev cmd OUTP${chan}:LOAD INF
+    set_par $dev "SOUR${chan}:BURST:STATE" "0"
+    set_par $dev "SOUR${chan}:VOLT:UNIT" "VPP"
+    set_par $dev "UNIT:ANGL"             "DEG"
+    set_par $dev "SOUR${chan}:FUNC"      "SIN"
+    set_par $dev "OUTP${chan}:LOAD"      "INF"
   }
 
   method set_ac {freq volt {offs 0}} {
+    err_clear $dev
     $dev cmd SOUR${chan}:APPLY:SIN $freq,$volt,$offs
-    $dev cmd OUTP${chan} ON
+    err_check $dev
+    set_par $dev "OUTP${chan}" "1"
   }
 
   method set_ac_fast {freq volt {offs 0}} {
-    $dev cmd SOUR${chan}:APPLY:SIN $freq,$volt,$offs
+    set_ac $freq $volt $offs
   }
 
   method off {} {
-    $dev cmd SOUR${chan}:APPLY:SIN 1,$min_v,0
-    $dev cmd OUTP${chan} OFF
+    set_par $dev "SOUR${chan}:VOLT" $min_v
+    set_par $dev "OUTP${chan}" 0
   }
 
-  method get_volt {} { return [$dev cmd "SOUR${chan}:VOLT?"] }
+  method get_volt {}  {
+    if {[$dev cmd "OUTP${chan}?"] == 0} {return 0}
+    return [$dev cmd "SOUR${chan}:VOLT?"]
+  }
   method get_freq {} { return [$dev cmd "SOUR${chan}:FREQ?"] }
   method get_offs {} { return [$dev cmd "SOUR${chan}:VOLT:OFFS?"] }
   method get_phase {} { return [$dev cmd "SOUR${chan}:PHAS?"] }
 
-  method set_volt {v}  { $dev cmd "SOUR${chan}:VOLT $v" }
-  method set_freq {v}  { $dev cmd "SOUR${chan}:FREQ $v" }
-  method set_offs {v}  { $dev cmd "SOUR${chan}:VOLT:OFFS $v" }
-  method set_phase {v} { $dev cmd "SOUR${chan}:PHAS $v" }
+  method set_volt {v}  {
+    if {$v==0} { off; return}
+    set_par $dev "SOUR${chan}:VOLT" $v
+    set_par $dev "OUTP${chan}" 1
+  }
+  method set_freq {v}  { set_par $dev "SOUR${chan}:FREQ" $v }
+  method set_offs {v}  { set_par $dev "SOUR${chan}:VOLT:OFFS" $v }
+  method set_phase {v} { set_par $dev "SOUR${chan}:PHAS" $v }
 
   method set_sync {state} {
-    $dev cmd OUTP:SYNC:SOUR CH${chan}
-    if {$state} { $dev cmd OUTP:SYNC ON }\
-    else        { $dev cmd OUTP:SYNC OFF }
+    set_par $dev "OUTP:SYNC:SOUR" "CH${chan}"
+    if {$state} { set_par $dev "OUTP:SYNC" 1 }\
+    else        { set_par $dev "OUTP:SYNC" 0 }
   }
 }
 
@@ -149,98 +160,57 @@ itcl::class keysight_2ch {
 # No channels supported
 
 itcl::class keysight_1ch {
-  inherit interface
-  proc test_id {id} {
-    if {[regexp {,33509B,} $id]} {return {33509B}}
-    if {[regexp {,33511B,} $id]} {return {33511B}}
-    if {[regexp {,33520A,} $id]} {return {33520A}}
-  }
+  inherit interface keysight_gen
+  proc test_id {id} { return [test_id_1ch $id] }
 
   constructor {d ch} {
     if {$ch!={}} {error "channels are not supported for the device $d"}
     set dev $d
     set max_v 20
     set min_v 0.002
-    $dev cmd SOUR:VOLT:UNIT VPP
-    $dev cmd UNIT:ANGL DEG
-    $dev cmd SOUR:FUNC SIN
-    $dev cmd OUTP:LOAD INF
+    set_par $dev "BURST:STATE" "0"
+    set_par $dev "VOLT:UNIT" "VPP"
+    set_par $dev "UNIT:ANGL" "DEG"
+    set_par $dev "FUNC"      "SIN"
+    set_par $dev "OUTP:LOAD" "INF"
   }
 
   method set_ac {freq volt {offs 0}} {
-    $dev cmd SOUR:APPLY:SIN $freq,$volt,$offs
-    $dev cmd OUTP ON
+    err_clear $dev
+    $dev cmd APPLY:SIN $freq,$volt,$offs
+    err_check $dev "can't set APPLY:SIN $freq,$volt,$offs"
+    set_par $dev "OUTP" "1"
   }
 
   method set_ac_fast {freq volt {offs 0}} {
-    $dev cmd SOUR:APPLY:SIN $freq,$volt,$offs
+    set_ac $freq $volt $offs
   }
 
   method off {} {
-    $dev cmd SOUR:APPLY:SIN 1,$min_v,0
-    $dev cmd OUTP OFF
+    set_par $dev "VOLT" $min_v
+    set_par $dev "OUTP" 0
   }
 
-  method get_volt {} { return [$dev cmd "SOUR:VOLT?"] }
-  method get_freq {} { return [$dev cmd "SOUR:FREQ?"] }
-  method get_offs {} { return [$dev cmd "SOUR:VOLT:OFFS?"] }
-  method get_phase {} { return [$dev cmd "SOUR:PHAS?"] }
+  method get_volt {}  {
+    if {[$dev cmd "OUTP?"] == 0} {return 0}
+    return [$dev cmd "VOLT?"]
+  }
+  method get_freq {}  { return [$dev cmd "FREQ?"] }
+  method get_offs {}  { return [$dev cmd "VOLT:OFFS?"] }
+  method get_phase {} { return [$dev cmd "PHAS?"] }
 
-  method set_volt {v}  { $dev cmd "SOUR:VOLT $v" }
-  method set_freq {v}  { $dev cmd "SOUR:FREQ $v" }
-  method set_offs {v}  { $dev cmd "SOUR:VOLT:OFFS $v" }
-  method set_phase {v} { $dev cmd "SOUR:PHAS $v" }
+  method set_volt {v}  {
+    if {$v==0} { off; return}
+    set_par $dev "VOLT" $v
+    set_par $dev "OUTP" 1
+  }
+  method set_freq {v}  { set_par $dev "FREQ" $v }
+  method set_offs {v}  { set_par $dev "VOLT:OFFS" $v }
+  method set_phase {v} { set_par $dev "PHAS" $v }
 
   method set_sync {state} {
-    if {$state} { $dev cmd OUTP:SYNC ON }\
-    else        { $dev cmd OUTP:SYNC OFF }
-  }
-}
-
-itcl::class keysight_33220A {
-  inherit interface
-  proc test_id {id} {
-    if {[regexp {,33220A,} $id]} {return {33220A}}
-  }
-
-  constructor {d ch} {
-    if {$ch!={}} {error "channels are not supported for the device $d"}
-    set dev $d
-    set max_v 20
-    set min_v 0.002
-    $dev cmd VOLT:UNIT VPP
-    $dev cmd UNIT:ANGL DEG
-    $dev cmd SOUR:FUNC SIN
-    $dev cmd OUTP:LOAD INF
-  }
-
-  method set_ac {freq volt {offs 0}} {
-    $dev cmd APPLY:SIN $freq,$volt,$offs
-    $dev cmd OUTP ON
-  }
-
-  method set_ac_fast {freq volt {offs 0}} {
-    $dev cmd APPLY:SIN $freq,$volt,$offs
-  }
-
-  method off {} {
-    $dev cmd APPLY 1,$min_v,0
-    $dev cmd OUTP OFF
-  }
-
-  method get_volt {} { return [$dev cmd "SOUR:VOLT?"] }
-  method get_freq {} { return [$dev cmd "SOUR:FREQ?"] }
-  method get_offs {} { return [$dev cmd "SOUR:VOLT:OFFS?"] }
-  method get_phase {} { return [$dev cmd "SOUR:PHAS?"] }
-
-  method set_volt {v}  { $dev cmd "SOUR:VOLT $v" }
-  method set_freq {v}  { $dev cmd "SOUR:FREQ $v" }
-  method set_offs {v}  { $dev cmd "SOUR:VOLT:OFFS $v" }
-  method set_phase {v} { $dev cmd "SOUR:PHAS $v" }
-
-  method set_sync {state} {
-    if {$state} { $dev cmd OUTP:SYNC ON }\
-    else        { $dev cmd OUTP:SYNC OFF }
+    if {$state} { set_par $dev "OUTP:SYNC" 1 }\
+    else        { set_par $dev "OUTP:SYNC" 0 }
   }
 }
 

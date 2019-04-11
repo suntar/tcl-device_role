@@ -58,11 +58,8 @@ itcl::class TEST {
 # Use channels 1 or 2 to set output
 
 itcl::class keysight_2ch {
-  inherit interface
-  proc test_id {id} {
-    if {[regexp {,33510B,} $id]} {return {33510B}}
-    if {[regexp {,33522A,} $id]} {return {33522A}}
-  }
+  inherit interface keysight_gen
+  proc test_id {id} { return [test_id_2ch $id] }
 
   variable chan;  # channel to use (1..2)
 
@@ -70,28 +67,31 @@ itcl::class keysight_2ch {
     if {$ch!=1 && $ch!=2} {
       error "$this: bad channel setting: $ch"}
     set chan $ch
-
     set dev $d
     set max_v 10
-    set min_v 0
+    set min_v -10
     set min_v_step 0.001
+    set_par $dev "SOUR${chan}:BURST:STATE" "0"
+    set_par $dev "SOUR${chan}:VOLT:UNIT" "VPP"
+    set_par $dev "OUTP${chan}:LOAD"      "INF"
+    set_par $dev "SOUR${chan}:FUNC"      "DC"
   }
 
   method set_volt {val} {
-    $dev cmd SOUR${chan}:FUNC DC
-    $dev cmd OUTP${chan}:LOAD INF
-    $dev cmd SOUR${chan}:VOLT:UNIT VPP
-    $dev cmd SOUR${chan}:VOLT:OFFS $val
-    $dev cmd OUTP${chan} ON
+    set_par $dev "SOUR${chan}:VOLT:OFFS" $val
+    set_par $dev "OUTP${chan}" "1"
   }
   method set_volt_fast {val} {
-    $dev cmd SOUR${chan}:VOLT:OFFS $val
+    set_volt $val
   }
   method off {} {
-    $dev cmd SOUR${chan}:VOLT:OFFS 0
-    $dev cmd OUTP${chan} OFF
+    set_par $dev "SOUR${chan}:VOLT:OFFS" 0
+    set_par $dev "OUTP${chan}" "0"
   }
-  method get_volt {} { return [$dev cmd "SOUR${chan}:VOLT:OFFS? "] }
+  method get_volt {} {
+    if {[$dev cmd "OUTP${chan}?"] == 0} {return 0}
+    return [$dev cmd "SOUR${chan}:VOLT:OFFS? "]
+  }
 }
 
 ######################################################################
@@ -104,37 +104,38 @@ itcl::class keysight_2ch {
 # No channels supported
 
 itcl::class keysight_1ch {
-  inherit interface
-  proc test_id {id} {
-    if {[regexp {,33509B,} $id]} {return {33509B}}
-    if {[regexp {,33511B,} $id]} {return {33511B}}
-    if {[regexp {,33520A,} $id]} {return {33520A}}
-  }
+  inherit interface keysight_gen
+  proc test_id {id} { return [test_id_1ch $id] }
 
   constructor {d ch} {
     if {$ch!={}} {error "channels are not supported for the device $d"}
     set dev $d
     set max_v 10
-    set min_v 0
+    set min_v -10
     set min_v_step 0.001
+    set_par $dev "BURST:STATE" "0"
+    set_par $dev "VOLT:UNIT" "VPP"
+    set_par $dev "OUTP:LOAD" "INF"
+    set_par $dev "FUNC"      "DC"
   }
 
   method set_volt {val} {
-    $dev cmd SOUR:FUNC DC
-    $dev cmd OUTP:LOAD INF
-    $dev cmd SOUR:VOLT:UNIT VPP
-    $dev cmd SOUR:VOLT:OFFS $val
-    $dev cmd OUTP ON
+    set_par $dev "VOLT:OFFS" $val
+    set_par $dev "OUTP" "1"
   }
   method set_volt_fast {val} {
-    $dev cmd SOUR:VOLT:OFFS $val
+    set_volt $val
   }
   method off {} {
-    $dev cmd SOUR:VOLT:OFFS 0
-    $dev cmd OUTP${chan} OFF
+    set_par $dev "VOLT:OFFS" 0
+    set_par $dev "OUTP" "0"
   }
-  method get_volt {} { return [$dev cmd "SOUR:VOLT:OFFS? "] }
+  method get_volt {} {
+    if {[$dev cmd "OUTP"] == 0} {return 0}
+    return [$dev cmd "SOUR:VOLT:OFFS? "]
+  }
 }
+
 # Use Lockin SR844 auxilary outputs as a voltage_suply.
 #
 # ID string:

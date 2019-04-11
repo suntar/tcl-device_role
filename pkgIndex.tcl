@@ -6,6 +6,7 @@ set _version 1.2
 
 set _files {}
 lappend _files "$dir/role.tcl"
+lappend _files "$dir/keysight_gen.tcl"
 lappend _files "$dir/noise_source.tcl"
 lappend _files "$dir/ac_source.tcl"
 lappend _files "$dir/dc_source.tcl"
