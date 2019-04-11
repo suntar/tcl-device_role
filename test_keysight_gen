@@ -53,7 +53,7 @@ proc test_dc {} {
   foreach G $::devices {
     set dev [DeviceRole $G dc_source]
 
-    set v1 0.25
+    set v1 -0.25
 
     $dev set_volt $v1
     if {abs([$dev get_volt]-$v1) > 1e-6} {error "set/get volt"}

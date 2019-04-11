@@ -33,7 +33,7 @@ itcl::class TEST {
   constructor {d ch id} {
     set volt  0
     set max_v 10
-    set min_v 0
+    set min_v -10
     set min_v_step 0.01
   }
 
