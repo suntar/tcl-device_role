@@ -10,7 +10,7 @@ can transfer commands to the device, but it knows nothing about its model
 and capabilities.
 
 DeviceRole library can autodetect device model and use a driver with some
-standard commands. Client only knows, that the role of device "mult0" is
+standard interface. Client only knows, that the role of device "mult0" is
 a "voltmeter", and thus it has a get_volt command.
 
 Usage:
@@ -126,6 +126,8 @@ Supported devices:
 
 * Keysight/Agilent/HP 2-channel generators 33510B and 33522A. Use channels 1 or 2 to select the output.
 
+* TEST
+
 ---
 #### ac_source -- AC voltage source
 
@@ -157,6 +159,8 @@ Supported devices:
 * Keysight/Agilent/HP 2-channel generators 33510B and 33522A. Use channels 1 or 2 to select the output.
 set_ac command sets sync signal to follow the current channel.
 
+* TEST
+
 ---
 #### noise_source -- noise source
 
@@ -179,7 +183,7 @@ Supported devices:
 
 * Keysight/Agilent/HP 2-channel generators 33510B and 33522A. Use channels 1 or 2 to select the output.
 
-
+* TEST
 
 ---
 #### gauge -- a gauge device

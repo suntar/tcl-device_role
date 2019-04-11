@@ -35,6 +35,48 @@ itcl::class interface {
 }
 
 ######################################################################
+# TEST device. Does nothing.
+
+itcl::class TEST {
+  inherit interface
+  variable freq
+  variable volt
+  variable offs
+  variable phase
+
+  constructor {d ch} {
+    set freq 1000
+    set volt 0.1
+    set offs  0
+    set phase 0
+  }
+
+  method set_ac {f v {o 0}} {
+    set freq $f
+    set volt $v
+    set offs $o
+  }
+  method set_ac_fast {f v {o 0}} {
+    set_ac $f $v $o
+  }
+  method off {} {
+    set volt 0
+    set offs 0
+  }
+  method get_volt {} { return $volt }
+  method get_freq {} { return $freq }
+  method get_offs {} { return $offs }
+  method get_phase {} { return $phase }
+
+  method set_volt {v}  { set volt $v }
+  method set_freq {v}  { set freq $v }
+  method set_offs {v}  { set offs $v }
+  method set_phase {v} { set phase $v }
+
+  method set_sync {state} { }
+}
+
+######################################################################
 # Use HP/Agilent/Keysight 2-channel generators
 # as an ac_source.
 #

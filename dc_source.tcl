@@ -24,6 +24,29 @@ itcl::class interface {
 }
 
 ######################################################################
+# TEST device. Does nothing
+itcl::class TEST {
+  inherit interface
+  variable volt
+
+  constructor {d ch} {
+    set volt  0
+    set max_v 10
+    set min_v 0
+    set min_v_step 0.01
+  }
+
+  method set_volt {v}      {
+    if {$v < $min_v} {set v $min_v}
+    if {$v > $max_v} {set v $max_v}
+    set volt $v
+  }
+  method set_volt_fast {v} { set_volt $v }
+  method off {}            { set volt 0  }
+  method get_volt {}       { return $volt }
+}
+
+######################################################################
 # Use HP/Agilent/Keysight 2-channel generators
 # as a DC source.
 #

@@ -26,6 +26,40 @@ itcl::class interface {
 }
 
 ######################################################################
+# TEST device. Does nothing
+
+itcl::class TEST {
+  inherit interface
+  variable volt
+  variable bw
+  variable offs
+
+  constructor {d ch} {
+    set volt 0
+    set bw 1000
+    set offs 0
+    set max_v 10
+    set min_v 0
+  }
+
+  method set_noise {b v {o 0}} {
+    if {$v < $min_v} {set v $min_v}
+    if {$v > $max_v} {set v $max_v}
+    set volt $v
+    set offs $o
+    set bw   $b
+  }
+  method set_noise_fast {b v {o 0}} { set_noise $b $v $o }
+  method off {} {
+    set volt 0
+    set offs 0
+  }
+  method get_volt {} { return $volt }
+  method get_bw   {} { return $bw }
+  method get_offs {} { return $offs }
+}
+
+######################################################################
 # Use HP/Agilent/Keysight 2-channel generators
 # as a noise_source.
 #
