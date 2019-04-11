@@ -1,12 +1,24 @@
 ######################################################################
 # Usage:
 #
+#   set dev [DeviceRole <name>:<channel> <role>]
+#
+#  <name>    - Device name in Device librarym,
+#              should me configured in /etc/devices.txt
+#  <channel> - A parameter for the driver. Can be a physical channel
+#              for multi-channel devices, operation mode, or something
+#              else. See documenation/code of specific drivers.
+#  <role>    - A "role", some interface supported by the device
+#              such as "gauge", "power_supply", "ac_source", etc.
+#  <dev>     - a returned object which implements the role interface.
+#
+# Example:
 #   set dev [DeviceRole ps0:1L power_supply]
 #   $dev set_curr 0.1
 #
 # This means "use channel 1L of Device ps0 as a power_supply".
 # power_supply commands can be founs in ./power_supply.tcl file.
-# Channel can be sat for some devices, see power_supply/*.tcl
+# Channel can be set for some devices, see power_supply/*.tcl
 
 package require Itcl
 package require Device
@@ -42,7 +54,7 @@ proc DeviceRole {name role} {
     if {$re == {}} continue; # skip base classes
     if {[regexp $re $ID]} { return [$m #auto ${name} $chan] }
   }
-  error "Do not know how to use device $name as a $n: $ID"
+  error "Do not know how to use device $name (id: $ID) as a $role"
 }
 
 
