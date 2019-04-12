@@ -91,23 +91,23 @@ itcl::class keysight_2ch {
     set max_v 20
     set min_v 0.002
     ## Burst mode with BUS trigger.
-    set_par $dev "${sour_pref}FUNC"        "SIN"; # should be before switching to BURST mode
-    set_par $dev "${sour_pref}VOLT:UNIT"   "VPP"
-    set_par $dev "${sour_pref}PHASE"       0; # BURST mode requires zero phase!
-    set_par $dev "OUTP${chan}:LOAD"        "INF"
-    set_par $dev "TRIG:SOURCE"             "INF"
-    set_par $dev "${sour_pref}BURST:STATE" "1"
-    set_par $dev "${sour_pref}BURST:MODE"  "TRIG"
-    set_par $dev "OUTP:SYNC"         1
-    set_par $dev "OUTP${chan}"       1
+    set_par "${sour_pref}FUNC"        "SIN"; # should be before switching to BURST mode
+    set_par "${sour_pref}VOLT:UNIT"   "VPP"
+    set_par "${sour_pref}PHASE"       0; # BURST mode requires zero phase!
+    set_par "OUTP${chan}:LOAD"        "INF"
+    set_par "TRIG:SOURCE"             "INF"
+    set_par "${sour_pref}BURST:STATE" "1"
+    set_par "${sour_pref}BURST:MODE"  "TRIG"
+    set_par "OUTP:SYNC"         1
+    set_par "OUTP${chan}"       1
   }
 
   method set_burst {fre amp cyc {offs 0} {ph 0}} {
-    set_par $dev "${sour_pref}BURST:NCYC"  $cyc
-    set_par $dev "${sour_pref}FREQ"        $fre
-    set_par $dev "${sour_pref}VOLT"        $amp
-    set_par $dev "${sour_pref}VOLT:OFFS"   $offs
-    set_par $dev "${sour_pref}BURST:PHASE" $ph
+    set_par "${sour_pref}BURST:NCYC"  $cyc
+    set_par "${sour_pref}FREQ"        $fre
+    set_par "${sour_pref}VOLT"        $amp
+    set_par "${sour_pref}VOLT:OFFS"   $offs
+    set_par "${sour_pref}BURST:PHASE" $ph
   }
 
   method do_burst {} {
@@ -120,11 +120,11 @@ itcl::class keysight_2ch {
   method get_cycl  {} { return [$dev cmd "${sour_pref}BURST:NCYC?"] }
   method get_phase {} { return [$dev cmd "${sour_pref}BURST:PHASE?"] }
 
-  method set_volt  {v} { set_par $dev "${sour_pref}VOLT" $v }
-  method set_freq  {v} { set_par $dev "${sour_pref}FREQ" $v }
-  method set_offs  {v} { set_par $dev "${sour_pref}VOLT:OFFS"  $v }
-  method set_cycl  {v} { set_par $dev "${sour_pref}BURST:NCYC" $v }
-  method set_phase {v} { set_par $dev "${sour_pref}BURST:PHASE" $v }
+  method set_volt  {v} { set_par "${sour_pref}VOLT" $v }
+  method set_freq  {v} { set_par "${sour_pref}FREQ" $v }
+  method set_offs  {v} { set_par "${sour_pref}VOLT:OFFS"  $v }
+  method set_cycl  {v} { set_par "${sour_pref}BURST:NCYC" $v }
+  method set_phase {v} { set_par "${sour_pref}BURST:PHASE" $v }
 }
 
 ######################################################################

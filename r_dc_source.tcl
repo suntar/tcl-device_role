@@ -58,22 +58,22 @@ itcl::class keysight_2ch {
     set max_v 10
     set min_v -10
     set min_v_step 0.001
-    set_par $dev "${sour_pref}BURST:STATE" "0"
-    set_par $dev "${sour_pref}VOLT:UNIT" "VPP"
-    set_par $dev "OUTP${chan}:LOAD"      "INF"
-    set_par $dev "${sour_pref}FUNC"      "DC"
+    set_par "${sour_pref}BURST:STATE" "0"
+    set_par "${sour_pref}VOLT:UNIT" "VPP"
+    set_par "OUTP${chan}:LOAD"      "INF"
+    set_par "${sour_pref}FUNC"      "DC"
   }
 
   method set_volt {val} {
-    set_par $dev "${sour_pref}VOLT:OFFS" $val
-    set_par $dev "OUTP${chan}" "1"
+    set_par "${sour_pref}VOLT:OFFS" $val
+    set_par "OUTP${chan}" "1"
   }
   method set_volt_fast {val} {
     set_volt $val
   }
   method off {} {
-    set_par $dev "${sour_pref}VOLT:OFFS" 0
-    set_par $dev "OUTP${chan}" "0"
+    set_par "${sour_pref}VOLT:OFFS" 0
+    set_par "OUTP${chan}" "0"
   }
   method get_volt {} {
     if {[$dev cmd "OUTP${chan}?"] == 0} {return 0}

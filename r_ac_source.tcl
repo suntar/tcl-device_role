@@ -100,18 +100,18 @@ itcl::class keysight_2ch {
   constructor {d ch id} {keysight_gen::constructor $d $ch $id} {
     set max_v 20
     set min_v 0.002
-    set_par $dev "${sour_pref}BURST:STATE" "0"
-    set_par $dev "${sour_pref}VOLT:UNIT" "VPP"
-    set_par $dev "UNIT:ANGL"             "DEG"
-    set_par $dev "${sour_pref}FUNC"      "SIN"
-    set_par $dev "OUTP${chan}:LOAD"      "INF"
+    set_par "${sour_pref}BURST:STATE" "0"
+    set_par "${sour_pref}VOLT:UNIT" "VPP"
+    set_par "UNIT:ANGL"             "DEG"
+    set_par "${sour_pref}FUNC"      "SIN"
+    set_par "OUTP${chan}:LOAD"      "INF"
   }
 
   method set_ac {freq volt {offs 0}} {
-    err_clear $dev
+    err_clear
     $dev cmd "${sour_pref}APPLY:SIN $freq,$volt,$offs"
-    err_check $dev
-    set_par $dev "OUTP${chan}" "1"
+    err_check
+    set_par "OUTP${chan}" "1"
   }
 
   method set_ac_fast {freq volt {offs 0}} {
@@ -119,8 +119,8 @@ itcl::class keysight_2ch {
   }
 
   method off {} {
-    set_par $dev "${sour_pref}VOLT" $min_v
-    set_par $dev "OUTP${chan}" 0
+    set_par "${sour_pref}VOLT" $min_v
+    set_par "OUTP${chan}" 0
   }
 
   method get_volt {}  {
@@ -133,19 +133,19 @@ itcl::class keysight_2ch {
 
   method set_volt {v}  {
     if {$v==0} { off; return}
-    set_par $dev "${sour_pref}VOLT" $v
-    set_par $dev "OUTP${chan}" 1
+    set_par "${sour_pref}VOLT" $v
+    set_par "OUTP${chan}" 1
   }
-  method set_freq {v}  { set_par $dev "${sour_pref}FREQ" $v }
-  method set_offs {v}  { set_par $dev "${sour_pref}VOLT:OFFS" $v }
-  method set_phase {v} { set_par $dev "${sour_pref}PHAS" $v }
+  method set_freq {v}  { set_par "${sour_pref}FREQ" $v }
+  method set_offs {v}  { set_par "${sour_pref}VOLT:OFFS" $v }
+  method set_phase {v} { set_par "${sour_pref}PHAS" $v }
 
   method set_sync {state} {
     if {$chan != {}} {
-      set_par $dev "OUTP:SYNC:SOUR" "CH${chan}"
+      set_par "OUTP:SYNC:SOUR" "CH${chan}"
     }
-    if {$state} { set_par $dev "OUTP:SYNC" 1 }\
-    else        { set_par $dev "OUTP:SYNC" 0 }
+    if {$state} { set_par "OUTP:SYNC" 1 }\
+    else        { set_par "OUTP:SYNC" 0 }
   }
 }
 

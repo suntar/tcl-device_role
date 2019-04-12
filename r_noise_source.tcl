@@ -69,26 +69,26 @@ itcl::class keysight_2ch {
   constructor {d ch id} {keysight_gen::constructor $d $ch $id} {
     set max_v 20
     set min_v 0.002
-    set_par $dev "${sour_pref}BURST:STATE" "0"
-    set_par $dev "${sour_pref}VOLT:UNIT" "VPP"
-    set_par $dev "${sour_pref}FUNC"      "NOIS"
-    set_par $dev "OUTP${chan}:LOAD"      "INF"
+    set_par "${sour_pref}BURST:STATE" "0"
+    set_par "${sour_pref}VOLT:UNIT" "VPP"
+    set_par "${sour_pref}FUNC"      "NOIS"
+    set_par "OUTP${chan}:LOAD"      "INF"
   }
 
   method set_noise {bw volt {offs 0}} {
-    set_par $dev "${sour_pref}VOLT" $volt
-    set_par $dev "${sour_pref}VOLT:OFFS" $offs
-    set_par $dev "${sour_pref}FUNC:NOISE:BANDWIDTH" $bw
-    set_par $dev "OUTP${chan}" "1"
+    set_par "${sour_pref}VOLT" $volt
+    set_par "${sour_pref}VOLT:OFFS" $offs
+    set_par "${sour_pref}FUNC:NOISE:BANDWIDTH" $bw
+    set_par "OUTP${chan}" "1"
   }
   method set_noise_fast {bw volt {offs 0}} {
     set_noise $bw $volt $offs
   }
   method off {} {
-    set_par $dev "${sour_pref}VOLT" $min_v
-    set_par $dev "${sour_pref}VOLT:OFFS" 0
-    set_par $dev "${sour_pref}FUNC:NOISE:BANDWIDTH" 10e6
-    set_par $dev "OUTP${chan}" "0"
+    set_par "${sour_pref}VOLT" $min_v
+    set_par "${sour_pref}VOLT:OFFS" 0
+    set_par "${sour_pref}FUNC:NOISE:BANDWIDTH" 10e6
+    set_par "OUTP${chan}" "0"
   }
   method get_volt {} {
     if {[$dev cmd "OUTP${chan}?"] == 0} {return 0}

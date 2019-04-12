@@ -52,7 +52,7 @@ itcl::class keysight_gen {
   }
 
   # set generator parameter if it is not set
-  proc set_par {dev cmd val} {
+  method set_par {cmd val} {
     #set verb 1
     set old [$dev cmd "$cmd?"]
     #if {$verb} {puts "get $cmd: $old"}
@@ -63,14 +63,14 @@ itcl::class keysight_gen {
 
     if {$old != $val} {
       #if {$verb} {puts "set $cmd: $val"}
-      err_clear $dev
+      err_clear
       $dev cmd "$cmd $val"
-      err_check $dev "can't set $cmd $val:"
+      err_check "can't set $cmd $val:"
     }
   }
 
   # clear generator error
-  proc err_clear {dev} {
+  method err_clear {} {
     while {1} {
       set stb [$dev cmd *STB?]
       if {($stb&4) == 0} {break}
@@ -79,7 +79,7 @@ itcl::class keysight_gen {
   }
 
   # throw generator error if any:
-  proc err_check {dev {msg {}}} {
+  method err_check {{msg {}}} {
     set stb [$dev cmd *STB?]
     if {($stb&4) != 0} {
       set err [$dev cmd SYST:ERR?]
