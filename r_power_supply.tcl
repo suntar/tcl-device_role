@@ -1,5 +1,5 @@
 ######################################################################
-# A power_supply role
+# power_supply role
 
 package require Itcl
 package require Device

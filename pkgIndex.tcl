@@ -6,13 +6,13 @@ set _version 1.2
 
 set _files {}
 lappend _files "$dir/role.tcl"
-lappend _files "$dir/keysight_gen.tcl"
-lappend _files "$dir/noise_source.tcl"
-lappend _files "$dir/ac_source.tcl"
-lappend _files "$dir/dc_source.tcl"
-lappend _files "$dir/burst_source.tcl"
-lappend _files "$dir/power_supply.tcl"
-lappend _files "$dir/gauge.tcl"
+lappend _files "$dir/d_keysight_gen.tcl"
+lappend _files "$dir/r_noise_source.tcl"
+lappend _files "$dir/r_ac_source.tcl"
+lappend _files "$dir/r_dc_source.tcl"
+lappend _files "$dir/r_burst_source.tcl"
+lappend _files "$dir/r_power_supply.tcl"
+lappend _files "$dir/r_gauge.tcl"
 
 set _pcmd {}
 foreach _f $_files { lappend _pcmd "source $_f" }

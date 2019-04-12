@@ -1,5 +1,5 @@
 ######################################################################
-# A simple dc_source role
+# dc_source role
 
 package require Itcl
 package require Device

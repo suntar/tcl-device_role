@@ -1,11 +1,11 @@
 #!/usr/bin/tclsh
 
 source ./role.tcl
-source ./keysight_gen.tcl
-source ./ac_source.tcl
-source ./dc_source.tcl
-source ./noise_source.tcl
-source ./burst_source.tcl
+source ./d_keysight_gen.tcl
+source ./r_ac_source.tcl
+source ./r_dc_source.tcl
+source ./r_noise_source.tcl
+source ./r_burst_source.tcl
 
 set devices [list TEST gen1 dgen1:2]
 

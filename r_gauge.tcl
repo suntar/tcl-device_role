@@ -1,5 +1,5 @@
 ######################################################################
-# A gauge role
+# gauge role
 
 package require Itcl
 package require Device

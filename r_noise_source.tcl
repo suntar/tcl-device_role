@@ -1,5 +1,5 @@
 ######################################################################
-# A noise_source role
+# noise_source role
 
 package require Itcl
 package require Device

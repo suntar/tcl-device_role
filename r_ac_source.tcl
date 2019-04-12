@@ -1,5 +1,5 @@
 ######################################################################
-# A ac_source role
+# ac_source role
 
 package require Itcl
 package require Device
