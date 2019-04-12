@@ -47,16 +47,16 @@ itcl::class keysight_gen {
 
   # set generator parameter if it is not set
   proc set_par {dev cmd val} {
-    set verb 1
+    #set verb 1
     set old [$dev cmd "$cmd?"]
-    if {$verb} {puts "get $cmd: $old"}
+    #if {$verb} {puts "get $cmd: $old"}
 
     # on some generators LOAD? command shows a
     # large number 9.9E37 instead of INF
     if {$val == "INF" && $old > 1e30} {set old "INF"}
 
     if {$old != $val} {
-      if {$verb} {puts "set $cmd: $val"}
+      #if {$verb} {puts "set $cmd: $val"}
       err_clear $dev
       $dev cmd "$cmd $val"
       err_check $dev "can't set $cmd $val:"
