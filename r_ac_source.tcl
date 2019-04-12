@@ -94,12 +94,10 @@ itcl::class TEST {
 #
 
 itcl::class keysight_2ch {
-  inherit interface keysight_gen
+  inherit keysight_gen interface
   proc test_id {id} {keysight_gen::test_id $id}
 
-  constructor {d ch id} {
-    set_ch $ch $id
-    set dev $d
+  constructor {d ch id} {keysight_gen::constructor $d $ch $id} {
     set max_v 20
     set min_v 0.002
     set_par $dev "${sour_pref}BURST:STATE" "0"

@@ -51,12 +51,10 @@ itcl::class TEST {
 # Use HP/Agilent/Keysight 1- and 2-channel generators as a DC source.
 
 itcl::class keysight_2ch {
-  inherit interface keysight_gen
+  inherit keysight_gen interface
   proc test_id {id} {keysight_gen::test_id $id}
 
-  constructor {d ch id} {
-    set_ch $ch $id
-    set dev $d
+  constructor {d ch id} {keysight_gen::constructor $d $ch $id} {
     set max_v 10
     set min_v -10
     set min_v_step 0.001

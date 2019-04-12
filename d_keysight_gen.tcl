@@ -1,24 +1,17 @@
-## common functions for all keysight generators
+## Common functions for all keysight generators
+## In inherit statement this class should go before interface class
+## to override dev variable
 itcl::class keysight_gen {
 
-  variable chan;      # channel to use (1..2)
-  variable sour_pref; # 2-channel generators need SOUR1 or SOUR2
-                      # prefix for some commends
-
-  # return model name for known generator id
-  proc test_id {id} {
-    # 1-channel
-    if {[regexp {,33509B,} $id]} {return {33509B}}
-    if {[regexp {,33511B,} $id]} {return {33511B}}
-    if {[regexp {,33520A,} $id]} {return {33520A}}
-    if {[regexp {,33520A,} $id]} {return {33220A}}
-    # 2-channel
-    if {[regexp {,33510B,} $id]} {return {33510B}}
-    if {[regexp {,33522A,} $id]} {return {33522A}}
-  }
+  protected variable chan;      # Channel to use (1,2 or empty).
+  protected variable sour_pref; # 2-channel generators need SOUR1 or SOUR2
+                                # prefix for some commends, for 1-ch generators
+                                # it is better to have it empty instead of SOUR
+                                # to support old models.
+  protected variable dev;
 
   # Check channel setting and set "chan" and "sour_pref" variables
-  proc set_ch {ch id} {
+  constructor {d ch id} {
     # Get the model name from id (using test_id function).
     # Set number of channels for this model.
     set model [test_id $id]
@@ -43,6 +36,19 @@ itcl::class keysight_gen {
       set sour_pref "SOUR${ch}:"
       set chan $ch
     }
+    set dev $d
+  }
+
+  # return model name for known generator id
+  proc test_id {id} {
+    # 1-channel
+    if {[regexp {,33509B,} $id]} {return {33509B}}
+    if {[regexp {,33511B,} $id]} {return {33511B}}
+    if {[regexp {,33520A,} $id]} {return {33520A}}
+    if {[regexp {,33520A,} $id]} {return {33220A}}
+    # 2-channel
+    if {[regexp {,33510B,} $id]} {return {33510B}}
+    if {[regexp {,33522A,} $id]} {return {33522A}}
   }
 
   # set generator parameter if it is not set
