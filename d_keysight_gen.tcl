@@ -9,6 +9,7 @@ itcl::class keysight_gen {
                                 # it is better to have it empty instead of SOUR
                                 # to support old models.
   protected variable dev;
+  protected variable model;
 
   # Check channel setting and set "chan" and "sour_pref" variables
   constructor {d ch id} {
