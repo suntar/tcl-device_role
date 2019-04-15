@@ -177,7 +177,9 @@ itcl::class keysight_n6700b {
     if {![regexp {([0-4])([HL]?)(:P([2-7])([2-7]))?} $ch x chan range p0 sw_pos sw_neg]} {
       error "$this: bad channel setting: $ch"}
 
-    if {$sw_pos == $sw_neg} {error "same setting for positive and negative pin of polarity switch"}
+    if {$sw_pos != 0 && $sw_pos == $sw_neg} {
+      error "same setting for positive and negative pin of polarity switch"
+    }
 
     # detect module type:
     set mod [$dev cmd "syst:chan:mod? (@$chan)"]
