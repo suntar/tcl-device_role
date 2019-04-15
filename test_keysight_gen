@@ -2,6 +2,7 @@
 
 source ./role.tcl
 source ./d_keysight_gen.tcl
+source ./d_tenma_ps.tcl
 source ./r_ac_source.tcl
 source ./r_dc_source.tcl
 source ./r_noise_source.tcl

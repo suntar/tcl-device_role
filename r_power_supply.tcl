@@ -77,41 +77,55 @@ itcl::class TEST {
   method lock {} {}
   method unlock {} {}
 
+  private method check_ocp {} {
+    if {$mode=="OFF"} return
+    if {$OCP==0 || $V/$R<=$OCP} return
+    set I 0
+    set V 0
+    set mode OCP
+  }
+  private method check_ovp {} {
+    if {$mode=="OFF"} return
+    if {$OVP==0 || $I*$R<=$OVP} return
+    set I 0
+    set V 0
+    set mode OVP
+  }
+
   method set_volt {val} {
     set V $val
-    if {$I*$R < $V} { set mode "CC" }
-    if {$OCP>0 && $V/$R>$OCP} {
-      set I 0
-      set V 0
-      set mode OCP
-    }
+    if {$I*$R < $V} { set mode "CC"; return }
+    set mode "CV"
+    check_ocp
   }
   method set_curr {val} {
     set I $val
-    if {$V/$R < $I} { set mode "CV" }
-    if {$OVP>0 && $I*$R>$OVP} {
-      set I 0
-      set V 0
-      set mode OVP
+    if {$V/$R < $I} {
+      set mode "CV"
+    } else {
+      set mode "CC"
     }
+    check_ovp
   }
   method set_ovp  {val} {
     set V $val
     set OVP $val
+    check_ovp
   }
   method set_ocp  {val} {
     set I $val
     set OCP $val
+    check_ocp
   }
   method get_curr {} {
-    if {$mode == "CC"} {set ret $I }\
-    else {set ret [expr $V/$R]}
-    return $ret
+    if {$mode == "OFF"} {return 0}
+    if {$mode == "CC"}  {return $I}
+    return [expr $V/$R]
   }
   method get_volt {} {
-    if {$mode == "CV"} {set ret $V }\
-    else {set ret [expr $I*$R]}
-    return $ret
+    if {$mode == "OFF"} {return 0}
+    if {$mode == "CV"}  {return $V}
+    return [expr $I*$R]
   }
 
   method cc_reset {} {
@@ -363,144 +377,20 @@ itcl::class keysight_n6700b {
 
 ######################################################################
 # Use Korad/Velleman/Tenma device in a power_suply role.
-# See https://sigrok.org/wiki/Korad_KAxxxxP_series
-#
-# There are many devices with different id strings and limits
-#   KORADKA6003PV2.0  tenma 2550 60V 3A
-#   TENMA72-2540V2.0  tenma 2540 30V 5A
-#   TENMA 72-2540 V2.1  tenma 2540 30V 5A
-#
-# No channels are supported
+itcl::class tenma {
+  inherit tenma_ps interface
+  proc test_id {id} {tenma_ps::test_id $id}
 
-# Base class
-itcl::class tenma_base {
-  inherit interface
-  proc test_id {id} {}
+  constructor {d ch id} {tenma_ps::constructor $d $ch $id} {}
 
-  constructor {d ch id} {
-    if {$ch!={}} {error "channels are not supported for the device $d"}
-    set dev $d
-    set max_i 3.09
-    set min_i 0.0
-    set max_v 60.0
-    set min_v 0.0
-    set min_i_step 0.001
-    set min_v_step 0.01
-    set i_prec 0.01
-  }
-
-  method set_volt {val} {
-    set val [expr {round($val*100)/100.0}]
-    $dev cmd "VSET1:$val"
-  }
-  method set_curr {val} {
-    set val [expr {round($val*1000)/1000.0}]
-    $dev cmd "ISET1:$val"
-  }
-  method set_ovp  {val} {
-    set_volt $val
-    $dev cmd "OVP1"
-  }
-  method set_ocp  {val} {
-    set_curr $val
-    $dev cmd "OCP1"
-  }
-  method get_curr {} { return [$dev cmd "IOUT1?"] }
-  method get_volt {} { return [$dev cmd "VOUT1?"] }
-
-  method cc_reset {} {
-    ## set current to actual current, turn output on
-    set status [$dev cmd "STATUS?"]
-    set c [$dev cmd "IOUT1?"]
-    $dev cmd "ISET1:$c"
-    $dev cmd "OUT1"
-  }
-
-  method get_stat {} {
-    # error states
-    set n 0
-    binary scan [$dev cmd "STATUS?"] cu n
-    if {$n==80 || $n==63}  {return CC}
-    if {$n==79 || $n==81}  {return CV}
-    return "OFF"
-  }
-}
-
-##################################################
-itcl::class tenma_72-2550 {
-  inherit tenma_base
-  proc test_id {id} {
-    if {[regexp {KORADKA6003PV2.0} $id]} {return {72-2550}}
-  }
-
-  constructor {d ch id} {
-    tenma_base::constructor $d $ch
-  } {
-    set max_i 3.09
-    set max_v 60.0
-  }
-}
-
-##################################################
-itcl::class tenma_72-2550_v20 {
-  inherit tenma_base
-  proc test_id {id} {
-    if {[regexp {TENMA72-2550V2.0} $id]} {return {72-2550}}
-  }
-
-  constructor {d ch id} {
-    tenma_base::constructor $d $ch
-  } {
-    set max_i 3.09
-    set max_v 60.0
-  }
-}
-
-##################################################
-itcl::class tenma_72-2540_v20 {
-  inherit tenma_base
-  proc test_id {id} {
-    if {[regexp {TENMA72-2540V2.0} $id]} {return {72-2540}}
-  }
-
-  constructor {d ch id} {
-    tenma_base::constructor $d $ch
-  } {
-    set max_i 5.09
-    set max_v 31.0
-  }
-}
-
-##################################################
-
-itcl::class tenma_72-2540_v21 {
-  inherit tenma_base
-  proc test_id {id} {
-    if {[regexp {TENMA 72-2540 V2.1} $id]} {return {72-2540}}
-  }
-
-  constructor {d ch id} {
-    tenma_base::constructor $d $ch
-  } {
-    set max_i 5.09
-    set max_v 31.0
-  }
-}
-
-##################################################
-
-itcl::class tenma_72-2535_v21 {
-  inherit tenma_base
-  proc test_id {id} {
-    if {[regexp {TENMA 72-2535 V2.1} $id]} {return {72-2535}}
-  }
-
-  constructor {d ch id} {
-    tenma_base::constructor $d $ch
-  } {
-    set max_i 3.09
-    set max_v 31.0
-  }
+  method set_volt {val} { tenma_ps::set_volt $val}
+  method set_curr {val} { tenma_ps::set_curr $val}
+  method set_ovp  {val} { tenma_ps::set_ovp $val}
+  method set_ocp  {val} { tenma_ps::set_ocp $val}
+  method get_curr {} { tenma_ps::get_curr}
+  method get_volt {} { tenma_ps::get_volt }
+  method cc_reset {} { tenma_ps::cc_reset }
+  method get_stat {} { tenma_ps::get_stat }
 }
 
 ######################################################################
