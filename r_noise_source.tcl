@@ -51,6 +51,7 @@ itcl::class TEST {
   method get_volt {} { return $volt }
   method get_bw   {} { return $bw }
   method get_offs {} { return $offs }
+  method off {} {set volt 0; set offs 0;}
 }
 
 ######################################################################
