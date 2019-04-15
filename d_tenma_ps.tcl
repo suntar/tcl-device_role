@@ -15,13 +15,13 @@
 itcl::class tenma_ps {
   protected variable dev;
   protected variable model;
-  variable min_i;
-  variable min_v;
-  variable max_i;
-  variable max_v;
-  variable min_i_step 0.001;
-  variable min_v_step 0.01;
-  variable i_prec 0.01;
+  public variable min_i;
+  public variable min_v;
+  public variable max_i;
+  public variable max_v;
+  public variable min_i_step 0.001;
+  public variable min_v_step 0.01;
+  public variable i_prec 0.01;
 
   proc test_id {id} {
     if {[regexp {KORADKA6003PV2.0} $id]}   {return {72-2550}}; # Tenma 72-2550
