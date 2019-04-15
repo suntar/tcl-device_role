@@ -56,7 +56,7 @@ itcl::class TEST {
 
 ######################################################################
 # Use HP/Agilent/Keysight 1- and 2-channel generators as an ac_source.
-itcl::class keysight_2ch {
+itcl::class keysight {
   inherit keysight_gen interface
   proc test_id {id} {keysight_gen::test_id $id}
   # we use Device from keysight_gen class

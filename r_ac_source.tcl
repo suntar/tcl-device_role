@@ -89,7 +89,7 @@ itcl::class TEST {
 #Technologies,33511B,MY52300310,2.03-1.19-2.00-52-00
 #
 
-itcl::class keysight_2ch {
+itcl::class keysight {
   inherit keysight_gen interface
   proc test_id {id} {keysight_gen::test_id $id}
   # we use Device from keysight_gen class
