@@ -1,0 +1,35 @@
+#!/usr/bin/tclsh
+
+source ./role.tcl
+source ./d_tenma_ps.tcl
+source ./d_keysight_gen.tcl
+source ./r_dc_source.tcl
+source ./r_power_supply.tcl
+
+set devices [list TEST pst1 pst2 pst5]
+
+###########################################################
+## dc_source role
+
+proc test_dc {} {
+  puts ">>> dc_source"
+  foreach G $::devices {
+    set dev [DeviceRole $G dc_source]
+
+    set v1 0.25
+
+    $dev set_volt $v1
+    if {abs([$dev get_volt]-$v1) > 1e-6} {error "set/get volt $v1"}
+    $dev off
+    if {abs([$dev get_volt]) > 1e-6} {error "set/get volt 0"}
+
+    set v1 0.35
+    $dev set_volt $v1
+    if {abs([$dev get_volt]-$v1) > 1e-6} {error "set/get volt $v1"}
+  }
+}
+
+###########################################################
+
+# device terminals should be opened
+test_dc
