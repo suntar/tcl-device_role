@@ -21,14 +21,15 @@ Usage:
 Package require DeviceRole
 set dev [DeviceRole mult0:DCV gauge]
 set v [dev get_volt]
+if {[DeviceRoleExists $dev]} {do_something}
 DeviceRoleDelete $dev
 ```
 
-Here we use a "channel" setting `:DCV` to tell the library that
-we want to masure DC voltage. Driver for the specific multimeter
-device should know what is this channel setting means. As an another
-example we can work with a 4-channel power-supply frame using channel
-settings `ps:1` .. `ps:4`.
+Here we use a "channel" setting `:DCV` to tell the library that we want
+to masure DC voltage. Driver for the specific multimeter device should
+know what is this channel setting means. As an another example we can
+work with a 4-channel power-supply frame using numerical channel settings
+`ps:1` .. `ps:4`.
 
 `DeviceRoleDelete` command deletes the `DeviceRole` object. It keeps
 a reference counter for low-level Device objects and closes them if

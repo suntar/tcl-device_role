@@ -89,12 +89,18 @@ proc DeviceRole {name role} {
 }
 
 ######################################################################
+# Check if <name> is a DeviceRole object
+proc DeviceRoleExists {name} {
+  if {[catch {set base [lindex [$name info heritage] end]} ]} { return 0 }
+  return [expr {$base == {::device_role::base_interface}}]
+}
+
+
+######################################################################
 # Delete the DeviceRole object.
 proc DeviceRoleDelete {name} {
 
-  if {[lindex [$name info heritage] end] != {::device_role::base_interface}} {
-    error "Not a DeviceRole object: $name"
-  }
+  if {![DeviceRoleExists $name]} {error "Not a DeviceRole object: $name"}
 
   # Get the device object (empty for TEST devices):
   set d [$name get_device]
