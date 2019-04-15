@@ -1,12 +1,6 @@
 #!/usr/bin/tclsh
 
-source ./role.tcl
-source ./d_keysight_gen.tcl
-source ./d_tenma_ps.tcl
-source ./r_ac_source.tcl
-source ./r_dc_source.tcl
-source ./r_noise_source.tcl
-source ./r_burst_source.tcl
+foreach f [glob role.tcl d_*.tcl r_*.tcl] {source $f}
 
 set devices [list TEST gen1 dgen1:2]
 
