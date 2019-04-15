@@ -18,7 +18,6 @@ itcl::class interface {
 
   # methods which should be defined by driver:
   method set_ac {freq volt {offs 0}} {};      # reconfigure output, set frequency, voltage, offset
-  method set_ac_fast {freq volt {offs 0}} {}; # set frequency, voltage, offset
   method off       {} {};    # turn off the signal
 
   method get_volt  {} {};    # get voltage value
@@ -60,9 +59,6 @@ itcl::class TEST {
     set freq $f
     set volt $v
     set offs $o
-  }
-  method set_ac_fast {f v {o 0}} {
-    set_ac $f $v $o
   }
   method off {} {
     set volt 0
@@ -113,16 +109,10 @@ itcl::class keysight_2ch {
     err_check
     set_par "OUTP${chan}" "1"
   }
-
-  method set_ac_fast {freq volt {offs 0}} {
-    set_ac $freq $volt $offs
-  }
-
   method off {} {
     set_par "${sour_pref}VOLT" $min_v
     set_par "OUTP${chan}" 0
   }
-
   method get_volt {}  {
     if {[$dev cmd "OUTP${chan}?"] == 0} {return 0}
     return [$dev cmd "${sour_pref}VOLT?"]

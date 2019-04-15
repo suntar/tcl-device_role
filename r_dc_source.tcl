@@ -18,8 +18,7 @@ itcl::class interface {
   public variable min_v_step; # min step in voltage
 
   # methods which should be defined by driver:
-  method set_volt      {val} {}; # set voltage and all output settings
-  method set_volt_fast {val} {}; # set voltage without touching other settings
+  method set_volt {val} {}; # set voltage
   method get_volt {} {};    # measure actual voltage value
 }
 
@@ -42,7 +41,6 @@ itcl::class TEST {
     if {$v > $max_v} {set v $max_v}
     set volt $v
   }
-  method set_volt_fast {v} { set_volt $v }
   method off {}            { set volt 0  }
   method get_volt {}       { return $volt }
 }
@@ -67,9 +65,6 @@ itcl::class keysight_2ch {
   method set_volt {val} {
     set_par "${sour_pref}VOLT:OFFS" $val
     set_par "OUTP${chan}" "1"
-  }
-  method set_volt_fast {val} {
-    set_volt $val
   }
   method off {} {
     set_par "${sour_pref}VOLT:OFFS" 0
@@ -105,11 +100,7 @@ itcl::class sr844 {
     set min_v -10.5
     set min_v_step 0.001
   }
-
   method set_volt {val} {
-    $dev cmd "AUXO${chan},$val"
-  }
-  method set_volt_fast {val} {
     $dev cmd "AUXO${chan},$val"
   }
   method off {} {
@@ -131,21 +122,13 @@ itcl::class tenma {
     $dev cmd "OCP0";  #
     $dev cmd "BEEP1"; # beep off
   }
-
   method set_volt {val} {
-    tenma_ps::set_volt $val
-puts ">S1 [tenma_ps::get_volt] [tenma_ps::get_curr] [tenma_ps::get_stat]"
-    if {[tenma_ps::get_stat] == {OFF}} { $dev cmd "OUT1" }
-puts ">S2 [tenma_ps::get_volt] [tenma_ps::get_curr] [tenma_ps::get_stat]"
-  }
-  method set_volt_fast {val} {
     tenma_ps::set_volt $val
     if {[tenma_ps::get_stat] == {OFF}} { $dev cmd "OUT1" }
   }
   method off {} {
     $dev cmd "OUT0"
   }
-
   method get_volt {} { tenma_ps::get_volt }
 }
 

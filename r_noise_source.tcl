@@ -17,8 +17,7 @@ itcl::class interface {
   public variable min_v; # min voltage
 
   # methods which should be defined by driver:
-  method set_noise      {bw volt {offs 0}} {}; # reconfigure the output, set bandwidth, voltage and offset
-  method set_noise_fast {bw volt {offs 0}} {}; # set bandwidth, voltage and offset
+  method set_noise      {bw volt {offs 0}} {}; # set bandwidth, voltage and offset
   method get_volt  {} {};    # get voltage value
   method get_bw    {} {};    # get bandwidth value
   method get_offs  {} {};    # get bandwidth value
@@ -42,18 +41,12 @@ itcl::class TEST {
     set max_v 10
     set min_v 0
   }
-
   method set_noise {b v {o 0}} {
     if {$v < $min_v} {set v $min_v}
     if {$v > $max_v} {set v $max_v}
     set volt $v
     set offs $o
     set bw   $b
-  }
-  method set_noise_fast {b v {o 0}} { set_noise $b $v $o }
-  method off {} {
-    set volt 0
-    set offs 0
   }
   method get_volt {} { return $volt }
   method get_bw   {} { return $bw }
@@ -80,9 +73,6 @@ itcl::class keysight_2ch {
     set_par "${sour_pref}VOLT:OFFS" $offs
     set_par "${sour_pref}FUNC:NOISE:BANDWIDTH" $bw
     set_par "OUTP${chan}" "1"
-  }
-  method set_noise_fast {bw volt {offs 0}} {
-    set_noise $bw $volt $offs
   }
   method off {} {
     set_par "${sour_pref}VOLT" $min_v

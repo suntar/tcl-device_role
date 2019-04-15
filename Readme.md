@@ -136,7 +136,6 @@ variable max_v; # max voltage
 variable min_v; # min voltage
 
 set_ac {freq volt {offs 0}};      # reconfigure the output and set frequency, voltage, offset
-set_ac_fast {freq volt {offs 0}}; # set frequency, voltage, offset
 get_volt  {};     # get voltage value (Vpp)
 get_freq  {};     # get frequency value (Hz)
 get_offs  {};     # get offset value (V)
@@ -169,8 +168,7 @@ Parameters and commands (see `noise_source.tcl`):
 variable max_v; # max voltage
 variable min_v; # min voltage
 
-set_noise      {bw volt {offs 0}}; # reconfigure the output, set bandwidth, voltage and offset
-set_noise_fast {bw volt {offs 0}}; # set bandwidth, voltage and offset
+set_noise {bw volt {offs 0}}; # reconfigure the output, set bandwidth, voltage and offset
 get_volt  {};    # get voltage value
 get_bw    {};    # get bandwidth value
 get_offs  {};    # get offset value
