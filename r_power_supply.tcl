@@ -172,13 +172,12 @@ itcl::class keysight_n6700b {
   constructor {d ch id} {
     set dev $d
     # parse channel name, range (H/L) and polarity pins (:P45):
-    set sw_pos 0
-    set sw_neg 0
     if {![regexp {([0-4])([HL]?)(:P([2-7])([2-7]))?} $ch x chan range p0 sw_pos sw_neg]} {
       error "$this: bad channel setting: $ch"}
 
-    if {$sw_pos != 0 && $sw_pos == $sw_neg} {
-      error "same setting for positive and negative pin of polarity switch"
+    # sw_pos = sw_neg = 0 -- no polarity switch
+    if {$sw_pos != {} && $sw_pos == $sw_neg} {
+       error "same setting for positive and negative pin of polarity switch"
     }
 
     # detect module type:
@@ -213,7 +212,7 @@ itcl::class keysight_n6700b {
     set max_v [$dev cmd "volt:rang? (@$chan)"]
     set min_v 0
     # if polarity switch is used, we can go to -max_i, -max_v
-    if {$sw_pos!=0 && $sw_neg!=0} {
+    if {$sw_pos!={} && $sw_neg!={}} {
       set min_i [expr {-$max_i}]
       set min_v [expr {-$max_v}]
     }
@@ -261,6 +260,13 @@ itcl::class keysight_n6700b {
     set d2 [get_pin $data $sw_neg]
     if {$d1 == 0 && $d2 == 1} { return +1 }
     if {$d1 == 1 && $d2 == 0} { return -1 }
+    # wrong ping setting, we do not know what is relay position now
+    # if current is zero we can cwitch pins to some good state:
+    if {abs([get_curr]-$min_i) < $i_prec} {
+      set_pol +1 $chan $sw_pos $sw_neg
+      return +1
+    }
+    error "Wrong pin settings: check polarities and values of digital pins"
   }
   # Set output polarity
   method set_pol {pol chan sw_pos sw_neg} {
@@ -279,7 +285,7 @@ itcl::class keysight_n6700b {
   #################
   method set_volt {val} {
     # No polarity switch or zero current:
-    if {($sw_pos==0 || $sw_neg==0) || $val == 0} {
+    if {($sw_pos == {} || $sw_neg == {}) || $val == 0} {
       $dev cmd "volt $val,(@$chan)"
       return
     }
@@ -290,7 +296,7 @@ itcl::class keysight_n6700b {
 
   method set_curr {val} {
     # No polarity switch or zero current:
-    if {($sw_pos==0 || $sw_neg==0) || $val == 0} {
+    if {($sw_pos=={} || $sw_neg=={}) || $val == 0} {
       $dev cmd "curr $val,(@$chan)"
       return
     }
@@ -301,13 +307,13 @@ itcl::class keysight_n6700b {
 
   method get_volt {} {
     set val [$dev cmd "meas:volt? (@$chan)"]
-    if {$sw_pos!=0 && $sw_neg!=0} {
+    if {$sw_pos!={} && $sw_neg!={}} {
       set val [expr {$val*[get_pol $chan $sw_pos $sw_neg]}] }
     return $val
   }
   method get_curr {} {
     set val [$dev cmd "meas:curr? (@$chan)"]
-    if {$sw_pos!=0 && $sw_neg!=0} {
+    if {$sw_pos!={} && $sw_neg!={}} {
       set val [expr {$val*[get_pol $chan $sw_pos $sw_neg]}] }
     return $val
   }
