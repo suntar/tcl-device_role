@@ -43,6 +43,7 @@ proc test_ac {} {
     if {abs([$dev get_offs]-$o1) > 1e-6} {error "set/get offs"}
     if {abs([$dev get_phase]-$p1) > 1e-6} {error "set/get phase"}
     $dev set_sync 1
+    DeviceRoleDelete $dev
   }
 }
 
@@ -64,7 +65,7 @@ proc test_dc {} {
     set v1 0.35
     $dev set_volt $v1
     if {abs([$dev get_volt]-$v1) > 1e-6} {error "set/get volt"}
-
+    DeviceRoleDelete $dev
   }
 }
 
@@ -81,20 +82,21 @@ proc test_noise {} {
     set o1 0.1
 
     $dev set_noise $f1 $v1 $o1
-    if {abs([$dev get_volt]-$v1) > 1e-6} {error "set/get volt"}
-    if {abs([$dev get_bw]-$f1)   > 1e-6} {error "set/get bw"}
-    if {abs([$dev get_offs]-$o1) > 1e-6} {error "set/get offs"}
+    if {abs([$dev get_volt]-$v1) > 1e-6} {error "set/get volt $v1"}
+    if {abs([$dev get_bw]-$f1)   > 1e-6} {error "set/get bw $f1"}
+    if {abs([$dev get_offs]-$o1) > 1e-6} {error "set/get offs $o1"}
 
     $dev off
-    if {abs([$dev get_volt]) > 1e-6} {error "set/get volt"}
+    if {abs([$dev get_volt]) > 1e-6} {error "set/get volt 0"}
 
     set v1 0.35
     set f1 2000
     set o1 0.2
     $dev set_noise $f1 $v1 $o1
-    if {abs([$dev get_volt]-$v1) > 1e-6} {error "set/get volt"}
-    if {abs([$dev get_bw]-$f1)   > 1e-6} {error "set/get bw"}
-    if {abs([$dev get_offs]-$o1) > 1e-6} {error "set/get offs"}
+    if {abs([$dev get_volt]-$v1) > 1e-6} {error "set/get volt $v1"}
+    if {abs([$dev get_bw]-$f1)   > 1e-6} {error "set/get bw $f1"}
+    if {abs([$dev get_offs]-$o1) > 1e-6} {error "set/get offs $o1"}
+    DeviceRoleDelete $dev
   }
 }
 
@@ -134,6 +136,7 @@ proc test_burst {} {
     if {abs([$dev get_cycl]-$c1) > 1e-6} {error "set/get cycl"}
     if {abs([$dev get_offs]-$o1) > 1e-6} {error "set/get offs"}
     if {abs([$dev get_phase]-$p1) > 1e-6} {error "set/get phase"}
+    DeviceRoleDelete $dev
   }
 }
 

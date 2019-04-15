@@ -25,6 +25,11 @@ package require Device
 
 namespace eval device_role {}
 
+# Array for counting devices.
+variable device_counter
+
+######################################################################
+# create the DeviceRole object
 proc DeviceRole {name role} {
   ## parse device name:
   set chan {}
@@ -39,11 +44,39 @@ proc DeviceRole {name role} {
   # return test device
   if {$name == "TEST"} {return [${n}::TEST #auto ${name} $chan {}]}
 
-  # Create device if needed, ask for ID.
-  # Many drivers can use a single device (different channels,
+
+  ## Create Device if needed, set device_counter.
+  # The reference counter is used because many drivers
+  # can work with a single device (different channels,
   # different roles) and device can be already opened
-  # Some reference counter is needed here!
-  if {[info commands $name]=={}} { Device $name }
+  # Is device exists?
+  global device_counter
+  if {[info commands $name]!={}} {
+    # is it a Device?
+    if {[lindex [$name info heritage] end] != {::Device}} {
+      error "Not a Device object: $name"
+    }
+    # is counter exists (other role uses the device)?
+    if {[array get device_counter $name] != {}} {
+      incr device_counter($name)
+    } else {
+      # somebody else uses the device, start from 2
+      set device_counter($name) 2
+    }
+  }\
+  else {
+    # Reference counter should be unset for closed devices.
+    if {[array get device_counter $name] != {}} {
+      error "DeviceRole reference counter is non-zero for non-opened device: $name"
+    }
+    # open the device
+    Device $name
+    set device_counter($name) 1
+  }
+
+  # puts "device_counter($name) -> $device_counter($name)"
+
+  # Ask the Device for ID.
   set ID [$name cmd *IDN?]
   if {$ID == {}} {error "Can't get device id: $name"}
 
@@ -55,15 +88,53 @@ proc DeviceRole {name role} {
   error "Do not know how to use device $name (id: $ID) as a $role"
 }
 
+######################################################################
+# Delete the DeviceRole object.
+proc DeviceRoleDelete {name} {
 
+  if {[lindex [$name info heritage] end] != {::device_role::base_interface}} {
+    error "Not a DeviceRole object: $name"
+  }
+
+  # Get the device object (empty for TEST devices):
+  set d [$name get_device]
+  global device_counter
+  if {$d!={}} {
+    # Device should exists
+    if {[info commands $d]=={}} {
+      error "DeviceRoleDelete: Device is already closed: $d"
+    }
+    # Device should have the proper type
+    if {[lindex [$d info heritage] end] != {::Device}} {
+      error "DeviceRoleDelete: Not a Device object: $d"
+    }
+    # Reference counter for the device should exist
+    if {[array get device_counter $d] == {}} {
+      error "DeviceRoleDelete: No reference counter for the device: $d"
+    }
+    # Decrease the reference counter
+    incr device_counter($d) -1
+      # puts "device_counter($d) <- $device_counter($d)"
+    # Close the device if needed:
+    if {$device_counter($d)<1} {
+      itcl::delete object $d
+      array unset device_counter $d
+    }
+  }
+
+  # delete the DeviceRole object:
+  itcl::delete object $name
+}
+
+######################################################################
 ## Base interface class. All role interfaces are children of it
 itcl::class device_role::base_interface {
-  variable dev; ## Device handler (see Device library)
+  variable dev {}; ## Device handler (see Device library)
 
   # Drivers should provide constructor with "device" and "channel" parameters
   constructor {} {}
-  destructor { if {[info commands $dev]!={}} { itcl::delete object $dev } }
 
   method lock {} {$dev lock}
   method unlock {} {$dev unlock}
+  method get_device {} {return $dev}
 }

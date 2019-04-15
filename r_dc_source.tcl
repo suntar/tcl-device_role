@@ -51,6 +51,8 @@ itcl::class TEST {
 itcl::class keysight_2ch {
   inherit keysight_gen interface
   proc test_id {id} {keysight_gen::test_id $id}
+  # we use Device from keysight_gen class
+  method get_device {} {return $keysight_gen::dev}
 
   constructor {d ch id} {keysight_gen::constructor $d $ch $id} {
     set max_v 10
@@ -114,6 +116,8 @@ itcl::class sr844 {
 itcl::class tenma {
   inherit tenma_ps interface
   proc test_id {id} {tenma_ps::test_id $id}
+  # we use Device from tenma_ps class
+  method get_device {} {return $tenma_ps::dev}
 
   constructor {d ch id} {tenma_ps::constructor $d $ch $id} {
     # set max current

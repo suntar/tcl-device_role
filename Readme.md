@@ -11,35 +11,28 @@ and capabilities.
 
 DeviceRole library can autodetect device model and use a driver with some
 standard interface. Client only knows, that the role of device "mult0" is
-a "voltmeter", and thus it has a get_volt command.
+a "gauge", and thus it has a get_volt command. This device roles are not
+universal. All real devices have different capabilities, but in many
+cases some simple operations are needed, then DeviceRole library can be
+useful. One physical device can work in defferent roles.
 
 Usage:
 ```tcl
 Package require DeviceRole
-set dev [DeviceRole mult0 voltmeter]
+set dev [DeviceRole mult0:DCV gauge]
 set v [dev get_volt]
-itcl::delete object $dev
+DeviceRoleDelete $dev
 ```
 
-This device roles are not universal. All real devices have different
-capabilities, but in many cases some simple operations are needed, then
-DeviceRole library can be useful. For example, a program for NMR
-measurements can use a device with a "sweeper" role to sweep field (or
-frequency), and a device with "gauge" role to perform some measurements
-and get values. Various devices can be used as these "sweeper" and
-"gauge" devices. One device can have many roles.
+Here we use a "channel" setting `:DCV` to tell the library that
+we want to masure DC voltage. Driver for the specific multimeter
+device should know what is this channel setting means. As an another
+example we can work with a 4-channel power-supply frame using channel
+settings `ps:1` .. `ps:4`.
 
-#### Channels
-
-Sometimes it is useful to specify which "channel" of the device used for
-the role: ```tcl set dev [DeviceRole lockin0:2 dc_source] ``` This
-means, that channel 2 of device lockin0 should be used as a
-"dc_source". Driver of the lock-in knows that the lock-in has
-two auxilary outputs and can use them as controlled voltage sources. Note
-that this channel specification depend on a device models and can contain
-any device-specific parameter. For example, one can write a "gauge" role
-driver for a multimeter which can understand channels R,V,I for
-resistance, voltage or current measurements.
+`DeviceRoleDelete` command deletes the `DeviceRole` object. It keeps
+a reference counter for low-level Device objects and closes them if
+it is needed.
 
 #### Locks
 

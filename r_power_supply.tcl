@@ -380,6 +380,8 @@ itcl::class keysight_n6700b {
 itcl::class tenma {
   inherit tenma_ps interface
   proc test_id {id} {tenma_ps::test_id $id}
+  # we use Device from tenma_ps class
+  method get_device {} {return $tenma_ps::dev}
 
   constructor {d ch id} {tenma_ps::constructor $d $ch $id} {}
 
