@@ -257,6 +257,7 @@ itcl::class picoscope {
   common range_b
   common npt 1e6; # point number
   common sigfile
+  common status
 
   constructor {d ch id} {
     if {$ch!="lockin" && $ch!="lockin:XY" && $ch!="DC"} {
@@ -270,6 +271,7 @@ itcl::class picoscope {
     set range_a 1.0
     set range_b 10.0
     set sigfile "/tmp/$dev:gauge.sig"
+    set status "OK"
   }
 
   ############################
@@ -296,27 +298,28 @@ itcl::class picoscope {
           if {![catch {inc_range}]} continue
         }
 
-        # if it is still overloaded
-        if {$ovl == 1} {
-          set x Ovl
-          set y Ovl
-          set f Ovl
-          break
-        }
+        set status "OK"
 
         # measure the value
         set ret [$dev cmd filter -f lockin $sigfile]
         set ret [lindex $ret 0]
         if {$ret == {}} {
-          set f NaN
-          set x NaN
-          set y NaN
+          set f 0
+          set x 0
+          set y 0
+          set status "ERR"
           break
         }
         set f [lindex $ret 0]
         set x [lindex $ret 1]
         set y [lindex $ret 2]
         set amp [expr sqrt($x**2+$y**2)]
+
+        # if it is still overloaded
+        if {$ovl == 1} {
+           set status "OVL"
+           break
+        }
 
         # if amplitude is too small, try to decrease the range and repeat
         if {$auto == 1 && $justinc == 0 && $amp < [expr 0.5*$range_a]} {
@@ -351,15 +354,17 @@ itcl::class picoscope {
           if {![catch {inc_range}]} continue
         }
 
-        # if it is still overloaded
-        if {$ovl == 1} {
-          set ret Ovl
-          break
-        }
+        set status "OK"
 
         # measure the value
         set ret [$dev cmd filter -f dc $sigfile]
         set ret [lindex $ret 0]
+
+        # if it is still overloaded
+        if {$ovl == 1} {
+          set status "OVL"
+          break
+        }
 
         # if amplitude is too small, try to decrease the range and repeat
         if {$auto == 1 && $justinc==0 && $ret < [expr 0.5*$range_a]} {
@@ -406,8 +411,8 @@ itcl::class picoscope {
   ############################
   method get_range  {} { return $range_a }
   method get_tconst {} { return $tconst }
-  method get_status_raw {} { return "" }
-  method get_status {} { return "" }
+  method get_status_raw {} { return $status }
+  method get_status {} { return $status }
 
 }
 
