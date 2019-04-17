@@ -97,7 +97,7 @@ itcl::class keysight {
     set_par "${sour_pref}VOLT:UNIT"   "VPP"
     set_par "${sour_pref}PHASE"       0; # BURST mode requires zero phase!
     set_par "OUTP${chan}:LOAD"        "INF"
-    set_par "TRIG:SOURCE"             "INF"
+    set_par "TRIG:SOURCE"             "BUS"
     set_par "${sour_pref}BURST:STATE" "1"
     set_par "${sour_pref}BURST:MODE"  "TRIG"
     set_par "OUTP:SYNC"         1
