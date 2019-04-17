@@ -11,6 +11,10 @@ itcl::class keysight_gen {
   protected variable dev;
   protected variable model;
 
+  # redefine lock/unlock methods with our dev
+  method lock {} {$dev lock}
+  method unlock {} {$dev unlock}
+
   # Check channel setting and set "chan" and "sour_pref" variables
   constructor {d ch id} {
     # Get the model name from id (using test_id function).
@@ -87,5 +91,7 @@ itcl::class keysight_gen {
       error "Generator error: $msg $err"
     }
   }
+
+
 
 }

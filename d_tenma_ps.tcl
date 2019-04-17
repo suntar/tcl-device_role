@@ -23,6 +23,10 @@ itcl::class tenma_ps {
   public variable min_v_step 0.01;
   public variable i_prec 0.01;
 
+  # redefine lock/unlock methods with our dev
+  method lock {} {$dev lock}
+  method unlock {} {$dev unlock}
+
   proc test_id {id} {
     if {[regexp {KORADKA6003PV2.0} $id]}   {return {72-2550}}; # Tenma 72-2550
     if {[regexp {TENMA72-2550V2.0} $id]}   {return {72-2550}}; # Tenma 72-2550
