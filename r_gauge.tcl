@@ -83,7 +83,9 @@ itcl::class TEST {
 itcl::class keysight_34461A {
   inherit interface
   proc test_id {id} {
-    if {[regexp {,34461A,} $id]} {return 1}
+    if {[regexp {,34461A,} $id]} {return {34461A}}
+    if {[regexp {,34401A,} $id]} {return {34401A}}
+    return {}
   }
 
   variable chan;  # channel to use (1..2)

@@ -229,7 +229,7 @@ get_tconst {} {}; # get current time constant setting
 
 Supported devices:
 
-* Keysight 34461A multimeter. Use channels ACI, DCI, ACV, DCV, R2, R4.
+* Keysight 34401A, 34461A multimeter. Use channels ACI, DCI, ACV, DCV, R2, R4.
 Only autorange measurements are supported.
 
 * SR844 lock-in. Use channels 1 or 2 to select auxilary input,
