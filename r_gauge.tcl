@@ -73,14 +73,16 @@ itcl::class TEST {
 }
 
 ######################################################################
-# Use Keysight 34461A as a gauge device.
+# Use Keysight/Agilent/HP multimeters 34401A, 34461A as a gauge device.
 #
-# ID string:
+# ID strings:
 #   Keysight Technologies,34461A,MY53220594,A.02.14-02.40-02.14-00.49-01-01
+#   Agilent Technologies,34461A,MY53200874,A.01.08-02.22-00.08-00.35-01-01
+#   HEWLETT-PACKARD,34401A,0,6-4-2
 #
 # Use channels ACI, DCI, ACV, DCV, R2, R4
 
-itcl::class keysight_34461A {
+itcl::class keysight {
   inherit interface
   proc test_id {id} {
     if {[regexp {,34461A,} $id]} {return {34461A}}
@@ -169,10 +171,13 @@ itcl::class sr844 {
 
   ############################
   method get {{auto 0}} {
-    if {$chan==1 || $chan==2} {
-      return [$dev cmd "AUXO?${chan}"]
-    }
+    # If channel is 1 or 2 read auxilary input:
+    if {$chan==1 || $chan==2} { return [$dev cmd "AUXO?${chan}"] }
+
+    # If autorange is needed, use AGAN command:
     if {$auto} {$dev cmd "AGAN"; after 100}
+
+    # Return space-separated values depending on channel setting
     if {$chan=="XY"} { return [string map {"," " "} [$dev cmd SNAP?1,2]] }
     if {$chan=="RT"} { return [string map {"," " "} [$dev cmd SNAP?3,5]] }
     if {$chan=="FXY"} { return [string map {"," " "} [$dev cmd SNAP?8,1,2]] }
@@ -240,8 +245,9 @@ itcl::class sr844 {
 # Use Picoscope as a gauge.
 #
 # Channels:
-#  lockin:XY
-#  DC
+#  lockin     -- use channels A and B as lockin, return FXY
+#  lockin:XY  -- use channels A and B as lockin, return XY
+#  DC         -- use channel A, return DC voltage
 
 itcl::class picoscope {
   inherit interface
