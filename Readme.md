@@ -237,7 +237,7 @@ use channels XY, RT, FXY, FRT to get X, Y, R, Theta, Frequency
 combinations. Full range/tconst/autorange support.
 
 * PicoScope, lockin and DC measurements with pico_rec+pico_filter program.
-Channels: lockin, lockin:XY, DC
+Channels: lockin(<channels>):XY, lockin(<channels>):FXY, DC(<channels>)
 
 * Agilent VS leak detector. Returns three values: leak rate,
 output pressure (mbar), input pressure (mbar)

@@ -245,9 +245,29 @@ itcl::class sr844 {
 # Use Picoscope as a gauge.
 #
 # Channels:
-#  lockin     -- use channels A and B as lockin, return FXY
-#  lockin:XY  -- use channels A and B as lockin, return XY
-#  DC         -- use channel A, return DC voltage
+
+# * `DC(<channels>)` -- measure DC signal on all oscilloscope channels
+#   (`A`, `B`, etc) channels, return multiple values, one for each channel.
+#   Any number of channels with any order and repeats can be used. For example
+#   `DC(ABA)` returns three values: DC components on A, B, and A channels.
+#
+# * `DC` -- same as DC(A).
+#
+# * `lockin(<channels>):FXY` -- do a lock-in measurement. Channel list should
+#   contain even number of oscilloscope channels (`A`, `B`, etc.) to be used
+#   as signal+reference pairs. Three numbers per each channel pair are returned:
+#   frequency (Hz) and two signal components (V). Any number of channels with
+#   any order and repeats can be used. For reference channels 10V range is
+#   used unless signal and reference channel are same.
+#   Examples: `lockin(AB):FXY`, `lockin(AA):FXY`, `lockin(ABCD):FXY`,
+#   `lockin(ADBDCD):FXY`.
+#
+# * `lockin(<channels>):XY` -- same, but returns two numbers per channel,
+#   X and Y components.
+#
+# * If `(<channels>)` is skipped then `(AB)` is used. If `:FXY` or `:XY`
+#   suffix is skipped then `:FXY` is used. Thus using just `lockin` is same as
+#   `lockin(AB):FXY`.
 
 itcl::class picoscope {
   inherit interface
@@ -255,29 +275,71 @@ itcl::class picoscope {
     if {[regexp {pico_rec} $id]} {return 1}
   }
 
-  variable chan;  # channel to use
+  variable osc_meas;  # measurement type: DC, lockin
+  variable osc_ch;    # list of oscilloscope channels (A B)
+  variable osc_out;   # output format for lockin measurement (XY, FXY)
+  variable osc_ach;   # unique channel sequence: ABCD
+  variable osc_nch;   # number of each channel in osc_ach: osc_nch(A)=0, osc_nch(B)=1
 
   # lock-in ranges and time constants
   common ranges
   common tconsts {1e-4 3e-4 1e-3 3e-3 1e-2 3e-2 0.1 0.3 1.0 3.0 10.0}
   common tconst
-  common range_a
-  common range_b
+  common range
+  common range_ref
   common npt 1e6; # point number
   common sigfile
   common status
 
   constructor {d ch id} {
-    if {$ch!="lockin" && $ch!="lockin:XY" && $ch!="DC"} {
+
+    set osc_meas {}
+    if {[regexp {^DC(\(([A-D]+)\))?$} $ch v0 v1 v2]} {
+      set osc_meas DC
+      set osc_ch [split $v2 {}]
+      # defaults
+      if {$osc_ch == {}} {set osc_ch A}
+    }
+    if {[regexp {^lockin(\(([A-D]+)\))?(:([FRXY]+))?$} $ch v0 v1 v2 v3 v4]} {
+      set osc_meas lockin
+      set osc_ch [split $v2 {}]
+      set osc_out $v4
+      # defaults
+      if {$osc_ch  == {}} {set osc_ch [list A B]}
+      if {$osc_out == {}} {set osc_out FXY}
+
+      # we want 2,4,6... channels
+      if {[llength $osc_ch] %2 != 0} {
+        error "$this: bad channel setting: 2,4... oscilloscope channels expected: $ch"}
+
+      # output format
+      if {$osc_out != {XY} && $osc_out != {FXY}} {
+        error "$this: bad channel setting: only XY or FXY output is supported: $ch"}
+
+
+    }
+    if {$osc_meas == {}} {
       error "$this: bad channel setting: $ch"}
-    set chan $ch
+
+    # fill osc_ach and osc_nch
+    set i 0
+    set osc_ach {}
+    array unset osc_nch
+    foreach ch $osc_ch {
+      if {[array names osc_nch $ch] == {}} {
+        set osc_ach "$osc_ach$ch"
+        set osc_nch($ch) $i
+        incr i
+      }
+    }
+
     set dev $d
 
     # oscilloscope ranges
     set ranges [lindex [$dev cmd ranges A] 0]
     set tconst  1.0
-    set range_a 1.0
-    set range_b 10.0
+    set range   1.0
+    set range_ref 10.0
     set sigfile "/tmp/$dev:gauge.sig"
     set status "OK"
   }
@@ -285,20 +347,27 @@ itcl::class picoscope {
   ############################
   method get {{auto 0}} {
 
-    if {$chan=="lockin" || $chan=="lockin:XY"} {
+    if {$osc_meas=="lockin"} {
 
       set dt [expr $tconst/$npt]
       set justinc 0; # avoid inc->dec loops
       while {1} {
-        # oscilloscope setup
-        $dev cmd chan_set A 1 AC $range_a
-        $dev cmd chan_set B 1 AC $range_b
+        # oscilloscope setup (pairs of channels: signal+reference)
+        foreach {c1 c2} $osc_ch {
+          $dev cmd chan_set $c1 1 AC $range
+          if {$c1 != $c2} {
+            $dev cmd chan_set $c2 1 AC $range_ref
+          }
+        }
         $dev cmd trig_set NONE 0.1 FALLING 0
         # record signal
-        $dev cmd block AB 0 $npt $dt $sigfile
+        $dev cmd block $osc_ach 0 $npt $dt $sigfile
 
-        # check for overload
-        set ovl [$dev cmd filter -c A -f overload $sigfile]
+        # check for overload (any signal channel)
+        set ovl 0
+        foreach {c1 c2} $osc_ch {
+          if {[$dev cmd filter -c $osc_nch($c1) -f overload $sigfile]} {set ovl 1}
+        }
 
         # try to increase the range and repeat
         if {$auto == 1 && $ovl == 1} {
@@ -309,52 +378,60 @@ itcl::class picoscope {
         set status "OK"
 
         # measure the value
-        set ret [$dev cmd filter -f lockin $sigfile]
-        set ret [lindex $ret 0]
-        if {$ret == {}} {
-          set f 0
-          set x 0
-          set y 0
-          set status "ERR"
-          break
-        }
-        set f [lindex $ret 0]
-        set x [lindex $ret 1]
-        set y [lindex $ret 2]
-        set amp [expr sqrt($x**2+$y**2)]
+        set max_amp 0
+        set ret {}
+        foreach {c1 c2} $osc_ch {
+          set v [$dev cmd filter -f lockin -c $osc_nch($c1),$osc_nch($c2) $sigfile]
+          set v [lindex $v 0]
+          if {$v == {}} {
+            set f 0
+            set x 0
+            set y 0
+            set status "ERR"
+          } else {
+            set f [lindex $v 0]
+            set x [lindex $v 1]
+            set y [lindex $v 2]
+          }
+          set amp [expr sqrt($x**2+$y**2)]
+          set max_amp [expr max($amp,$max_amp)]
 
-        # if it is still overloaded
-        if {$ovl == 1} {
-           set status "OVL"
-           break
+          if {$osc_out == "XY"} {
+            lappend ret $x $y
+          } else {
+            lappend ret $f $x $y
+          }
+
+          # if it is still overloaded
+          if {$ovl == 1} { set status "OVL" }
         }
 
         # if amplitude is too small, try to decrease the range and repeat
-        if {$auto == 1 && $justinc == 0 && $amp < [expr 0.5*$range_a]} {
+        if {$auto == 1 && $justinc == 0 && $status == {OK} && $max_amp < [expr 0.5*$range]} {
           if {![catch {dec_range}]} continue
         }
         break
       }
-      if {$chan == "lockin:XY"} {
-        return [list $x $y]
-      } else {
-        return [list $f $x $y]
-      }
+      return $ret
     }
-    if {$chan=="DC"} {
-      set ch A
+    if {$osc_meas=="DC"} {
       set dt [expr $tconst/$npt]
       set justinc 0; # avoid inc->dec loops
 
       while {1} {
         # oscilloscope setup
-        $dev cmd chan_set $ch 1 DC $range_a
+        foreach ch $osc_ch {
+          $dev cmd chan_set $ch 1 DC $range
+        }
         $dev cmd trig_set NONE 0.1 FALLING 0
         # record signal
-        $dev cmd block $ch 0 $npt $dt $sigfile
+        $dev cmd block $osc_ach 0 $npt $dt $sigfile
 
         # check for overload
-        set ovl [$dev cmd filter -c $ch -f overload $sigfile]
+        set ovl 0
+        foreach ch $osc_ch {
+          if {[$dev cmd filter -c $osc_nch($ch) -f overload $sigfile]} {set ovl 1}
+        }
 
         # try to increase the range and repeat
         if {$auto == 1 && $ovl == 1} {
@@ -365,8 +442,12 @@ itcl::class picoscope {
         set status "OK"
 
         # measure the value
-        set ret [$dev cmd filter -f dc $sigfile]
-        set ret [lindex $ret 0]
+        set nch {}
+        foreach ch $osc_ch {
+          lappend nch $osc_nch($ch)
+        }
+        set nch [join $nch {,}]
+        set ret [$dev cmd filter -c $nch -f dc $sigfile]
 
         # if it is still overloaded
         if {$ovl == 1} {
@@ -375,7 +456,8 @@ itcl::class picoscope {
         }
 
         # if amplitude is too small, try to decrease the range and repeat
-        if {$auto == 1 && $justinc==0 && $ret < [expr 0.5*$range_a]} {
+        set max [expr max([join $ret ,])]
+        if {$auto == 1 && $justinc==0 && $max < [expr 0.5*$range]} {
           if {![catch {dec_range}]} continue
         }
         break
@@ -393,22 +475,22 @@ itcl::class picoscope {
   method set_range  {val} {
     set n [lsearch -real -exact $ranges $val]
     if {$n<0} {error "unknown range setting: $val"}
-    set range_a $val
+    set range $val
   }
 
   method dec_range {} {
-    set n [lsearch -real -exact $ranges $range_a]
-    if {$n<0} {error "unknown range setting: $range_a"}
-    if {$n==0} {error "range already at minimum: $range_a"}
-    set range_a [lindex $ranges [expr $n-1]]
+    set n [lsearch -real -exact $ranges $range]
+    if {$n<0} {error "unknown range setting: $range"}
+    if {$n==0} {error "range already at minimum: $range"}
+    set range [lindex $ranges [expr $n-1]]
   }
 
   method inc_range {} {
-    set n [lsearch -real -exact $ranges $range_a]
+    set n [lsearch -real -exact $ranges $range]
     set nmax [expr {[llength $ranges] - 1}]
-    if {$n<0} {error "unknown range setting: $range_a"}
-    if {$n>=$nmax} {error "range already at maximum: $range_a"}
-    set range_a [lindex $ranges [expr $n+1]]
+    if {$n<0} {error "unknown range setting: $range"}
+    if {$n>=$nmax} {error "range already at maximum: $range"}
+    set range [lindex $ranges [expr $n+1]]
   }
 
   method set_tconst {val} {
@@ -417,7 +499,7 @@ itcl::class picoscope {
   }
 
   ############################
-  method get_range  {} { return $range_a }
+  method get_range  {} { return $range }
   method get_tconst {} { return $tconst }
   method get_status_raw {} { return $status }
   method get_status {} { return $status }
