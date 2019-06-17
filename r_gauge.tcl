@@ -242,6 +242,114 @@ itcl::class sr844 {
 
 
 ######################################################################
+# Use Lockin SR830 as a gauge.
+#
+# ID string:
+#   Stanford_Research_Systems,SR830,s/n46117,ver1.07
+#
+# Use channels 1 or 2 to measure voltage from auxilary inputs,
+# channels XY RT FXY FRT to measure lockin X Y R Theta values
+
+itcl::class sr830 {
+  inherit interface
+  proc test_id {id} {
+    if {[regexp {,SR830,} $id]} {return 1}
+  }
+
+  variable chan;  # channel to use (1..2)
+
+  # lock-in ranges and time constants
+  common ranges
+  common ranges_V  {2e-9 5e-9 1e-8 2e-8 5e-8 1e-7 2e-7 5e-7 1e-6 2e-6 5e-6 1e-5 2e-5 5e-5 1e-4 2e-4 5e-4 1e-3 2e-3 5e-3 1e-2 2e-2 5e-2 0.1 0.2 0.5 1.0}
+  common ranges_A  {2e-15 5e-15 1e-14 2e-14 5e-14 1e-13 2e-13 5e-13 1e-12 2e-12 5e-12 1e-11 2e-11 5e-11 1e-10 2e-10 5e-10 1e-9 2e-9 5e-9 1e-8 2e-8 5e-8 1e-7 2e-7 5e-7 1e-6}
+  common tconsts   {1e-5 3e-5 1e-4 3e-4 1e-3 3e-3 1e-2 3e-2 0.1 0.3 1.0 3.0 10.0 30.0 1e2 3e3 1e3 3e3 1e4 3e4}
+
+  common aux_range 10;    # auxilary input range: +/- 10V
+  common aux_tconst 3e-4; # auxilary input bandwidth: 3kHz
+
+  common isrc;            # input 0-3 A/A-B/I_1MOhm/I_100MOhm
+
+  constructor {d ch id} {
+    if {$ch!=1 && $ch!=2 && $ch!="XY" && $ch!="RT" && $ch!="FXY" && $ch!="FRT"} {
+      error "$this: bad channel setting: $ch"}
+    set chan $ch
+    set dev $d
+  }
+
+  ############################
+  method get {{auto 0}} {
+    # If channel is 1 or 2 read auxilary input:
+    if {$chan==1 || $chan==2} { return [$dev cmd "AUXO?${chan}"] }
+
+    # If autorange is needed, use AGAN command:
+    if {$auto} {$dev cmd "AGAN"; after 100}
+
+    # Return space-separated values depending on channel setting
+    if {$chan=="XY"} { return [string map {"," " "} [$dev cmd SNAP?1,2]] }
+    if {$chan=="RT"} { return [string map {"," " "} [$dev cmd SNAP?3,4]] }
+    if {$chan=="FXY"} { return [string map {"," " "} [$dev cmd SNAP?9,1,2]] }
+    if {$chan=="FRT"} { return [string map {"," " "} [$dev cmd SNAP?9,3,4]] }
+  }
+  method get_auto {} { return [get 1] }
+
+  ############################
+  method list_ranges {} {
+    if {$chan==1 || $chan==2} {return $aux_range}
+    set isrc [$dev cmd "ISRC?"]
+    if {$isrc == 0 || $isrc == 1} { set ranges $ranges_V } { set ranges $ranges_A }
+    return $ranges
+  }
+  method list_tconsts {} {
+    if {$chan==1 || $chan==2} {return $aux_tconst}
+    return $tconsts
+  }
+
+  ############################
+  method set_range  {val} {
+    if {$chan==1 || $chan==2} { error "can't set range for auxilar input $chan" }
+    set n [lsearch -real -exact $ranges $val]
+    if {$n<0} {error "unknown range setting: $val"}
+    $dev cmd "SENS $n"
+  }
+  method set_tconst {val} {
+    if {$chan==1 || $chan==2} { error "can't set time constant for auxilar input $chan" }
+    set n [lsearch -real -exact $tconsts $val]
+    if {$n<0} {error "unknown time constant setting: $val"}
+    $dev cmd "OFLT $n"
+  }
+
+  ############################
+  method get_range  {} {
+    if {$chan==1 || $chan==2} { return $aux_range}
+    set isrc [$dev cmd "ISRC?"]
+    if {$isrc == 0 || $isrc == 1} { set ranges $ranges_V } { set ranges $ranges_A }
+    set n [$dev cmd "SENS?"]
+    return [lindex $ranges $n]
+  }
+  method get_tconst {} {
+    if {$chan==1 || $chan==2} { return $aux_tconst}
+    set n [$dev cmd "OFLT?"]
+    return [lindex $tconsts $n]
+  }
+
+  method get_status_raw {} {
+    return [$dev cmd "LIAS?"]
+  }
+
+  method get_status {} {
+    set s [$dev cmd "LIAS?"]
+    if {$s & (1<<0)} {return "INP_OVR"}
+    if {$s & (1<<1)} {return "FLT_OVR"}
+    if {$s & (1<<2)} {return "OUTPT_OVR"}
+    if {$s & (1<<3)} {return "UNLOCK"}
+    if {$s & (1<<4)} {return "FREQ_LO"}
+    return ""
+  }
+
+}
+
+
+######################################################################
 # Use Picoscope as a gauge.
 #
 # Channels:
