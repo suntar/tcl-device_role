@@ -296,16 +296,16 @@ itcl::class picoscope {
     set osc_meas {}
     if {[regexp {^DC(\(([A-D]+)\))?$} $ch v0 v1 v2]} {
       set osc_meas DC
-      set osc_ch [split $v2 {}]
+      set_osc_ch [split $v2 {}]
       # defaults
-      if {$osc_ch == {}} {set osc_ch A}
+      if {$osc_ch == {}} {set_osc_ch A}
     }
     if {[regexp {^lockin(\(([A-D]+)\))?(:([FRXY]+))?$} $ch v0 v1 v2 v3 v4]} {
       set osc_meas lockin
-      set osc_ch [split $v2 {}]
+      set_osc_ch [split $v2 {}]
       set osc_out $v4
       # defaults
-      if {$osc_ch  == {}} {set osc_ch [list A B]}
+      if {$osc_ch  == {}} {set_osc_ch [list A B]}
       if {$osc_out == {}} {set osc_out FXY}
 
       # we want 2,4,6... channels
@@ -318,20 +318,7 @@ itcl::class picoscope {
 
 
     }
-    if {$osc_meas == {}} {
-      error "$this: bad channel setting: $ch"}
-
-    # fill osc_ach and osc_nch
-    set i 0
-    set osc_ach {}
-    array unset osc_nch
-    foreach ch $osc_ch {
-      if {[array names osc_nch $ch] == {}} {
-        set osc_ach "$osc_ach$ch"
-        set osc_nch($ch) $i
-        incr i
-      }
-    }
+    if {$osc_meas == {}} { error "$this: bad channel setting: $ch" }
 
     set dev $d
 
@@ -470,6 +457,22 @@ itcl::class picoscope {
   ############################
   method list_ranges {} { return $ranges }
   method list_tconsts {} { return $tconsts }
+
+  ############################
+  method set_osc_ch  {val} {
+    set osc_ch $val
+    # fill osc_ach and osc_nch
+    set i 0
+    set osc_ach {}
+    array unset osc_nch
+    foreach ch $osc_ch {
+      if {[array names osc_nch $ch] == {}} {
+        set osc_ach "$osc_ach$ch"
+        set osc_nch($ch) $i
+        incr i
+      }
+    }
+  }
 
   ############################
   method set_range  {val} {
