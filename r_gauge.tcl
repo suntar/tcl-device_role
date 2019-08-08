@@ -619,6 +619,92 @@ itcl::class picoscope {
 
 
 ######################################################################
+# Use Picoscope ADC as a gauge.
+#
+# Channels:
+
+# * `<channels>(r<range>)` -- measure DC signal on any oscilloscope channels
+#   (`01`, `02`, etc), return multiple values, one for each channel.
+#   Any number of channels with any order and repeats can be used. For example
+#   `110711(r1250)` returns three values: on 11, 07, and 11 channels.
+#
+
+itcl::class picoADC {
+  inherit interface
+  proc test_id {id} {
+    if {[regexp {pico_adc} $id]} {return 1}
+  }
+
+  variable osc_ch;      # oscilloscope channels (01120512)
+  variable osc_ach;     # list of channels: {01 12 05 12}
+  variable osc_uch;     # list of channels, unique and sorted: {01 05 12}
+  variable osc_uch_n;   # number of unique oscilloscope channels (3)
+
+  # lock-in ranges and time constants
+  common ranges {2500 1250 625 312.5 156.25 78.125 39.0625}; # mV
+  common tconvs {60 100 180 340 660};                        # ms
+  common tconv  180
+  common dt
+  common range
+
+  constructor {d ch id} {
+
+    set osc_meas {}
+    if {[regexp {^([0-9]+)\(r([0-9\.]+)\)?$} $ch v0 v1 v2]} {
+      set range $v2
+      if {[string length $v1] %2 != 0} {
+        error "$this: bad channel setting: 2-digits oscilloscope channels expected: $ch"}
+      set_osc_ch $v1
+      # defaults
+      if {$osc_ch == {}} {error "no channels"}
+    }
+
+    set dev $d
+
+    # set ADC time intervals.
+    set dt [expr $osc_uch_n*$tconv+100]
+    $dev cmd set_t $dt $tconv
+
+    # set ADC channels
+    $dev cmd chan_set [join $osc_uch ""] 1 1 $range
+  }
+
+  ############################
+  method get {{auto 0}} {
+    array unset ures
+    array unset ares
+    set uvals {*}[$dev cmd get]
+    puts $uvals
+    foreach v $uvals ch $osc_uch {
+      set ures($ch) $v
+    }
+    foreach ch $osc_ach {
+      lappend ares $ures($ch)
+    }
+    return $ares
+  }
+  method get_auto {} { return [get 1] }
+
+  ############################
+  method list_ranges {} { return $ranges }
+  method list_tconvs {} { return $tconvs }
+
+  ############################
+  method set_osc_ch  {val} {
+    set osc_ch $val
+    # fill osc_ach and osc_nch
+    set i 0
+    set osc_ach {}
+    foreach {c1 c2} [split $osc_ch {}] {
+      lappend osc_ach "$c1$c2"
+    }
+    set osc_uch [lsort -unique $osc_ach]
+    set osc_uch_n [llength $osc_uch]
+  }
+}
+
+
+######################################################################
 # Use Agilent VS leak detector as a gauge.
 #
 
