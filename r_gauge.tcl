@@ -242,6 +242,114 @@ itcl::class sr844 {
 
 
 ######################################################################
+# Use Lockin SR830 as a gauge.
+#
+# ID string:
+#   Stanford_Research_Systems,SR830,s/n46117,ver1.07
+#
+# Use channels 1 or 2 to measure voltage from auxilary inputs,
+# channels XY RT FXY FRT to measure lockin X Y R Theta values
+
+itcl::class sr830 {
+  inherit interface
+  proc test_id {id} {
+    if {[regexp {,SR830,} $id]} {return 1}
+  }
+
+  variable chan;  # channel to use (1..2)
+
+  # lock-in ranges and time constants
+  common ranges
+  common ranges_V  {2e-9 5e-9 1e-8 2e-8 5e-8 1e-7 2e-7 5e-7 1e-6 2e-6 5e-6 1e-5 2e-5 5e-5 1e-4 2e-4 5e-4 1e-3 2e-3 5e-3 1e-2 2e-2 5e-2 0.1 0.2 0.5 1.0}
+  common ranges_A  {2e-15 5e-15 1e-14 2e-14 5e-14 1e-13 2e-13 5e-13 1e-12 2e-12 5e-12 1e-11 2e-11 5e-11 1e-10 2e-10 5e-10 1e-9 2e-9 5e-9 1e-8 2e-8 5e-8 1e-7 2e-7 5e-7 1e-6}
+  common tconsts   {1e-5 3e-5 1e-4 3e-4 1e-3 3e-3 1e-2 3e-2 0.1 0.3 1.0 3.0 10.0 30.0 1e2 3e3 1e3 3e3 1e4 3e4}
+
+  common aux_range 10;    # auxilary input range: +/- 10V
+  common aux_tconst 3e-4; # auxilary input bandwidth: 3kHz
+
+  common isrc;            # input 0-3 A/A-B/I_1MOhm/I_100MOhm
+
+  constructor {d ch id} {
+    if {$ch!=1 && $ch!=2 && $ch!="XY" && $ch!="RT" && $ch!="FXY" && $ch!="FRT"} {
+      error "$this: bad channel setting: $ch"}
+    set chan $ch
+    set dev $d
+  }
+
+  ############################
+  method get {{auto 0}} {
+    # If channel is 1 or 2 read auxilary input:
+    if {$chan==1 || $chan==2} { return [$dev cmd "AUXO?${chan}"] }
+
+    # If autorange is needed, use AGAN command:
+    if {$auto} {$dev cmd "AGAN"; after 100}
+
+    # Return space-separated values depending on channel setting
+    if {$chan=="XY"} { return [string map {"," " "} [$dev cmd SNAP?1,2]] }
+    if {$chan=="RT"} { return [string map {"," " "} [$dev cmd SNAP?3,4]] }
+    if {$chan=="FXY"} { return [string map {"," " "} [$dev cmd SNAP?9,1,2]] }
+    if {$chan=="FRT"} { return [string map {"," " "} [$dev cmd SNAP?9,3,4]] }
+  }
+  method get_auto {} { return [get 1] }
+
+  ############################
+  method list_ranges {} {
+    if {$chan==1 || $chan==2} {return $aux_range}
+    set isrc [$dev cmd "ISRC?"]
+    if {$isrc == 0 || $isrc == 1} { set ranges $ranges_V } { set ranges $ranges_A }
+    return $ranges
+  }
+  method list_tconsts {} {
+    if {$chan==1 || $chan==2} {return $aux_tconst}
+    return $tconsts
+  }
+
+  ############################
+  method set_range  {val} {
+    if {$chan==1 || $chan==2} { error "can't set range for auxilar input $chan" }
+    set n [lsearch -real -exact $ranges $val]
+    if {$n<0} {error "unknown range setting: $val"}
+    $dev cmd "SENS $n"
+  }
+  method set_tconst {val} {
+    if {$chan==1 || $chan==2} { error "can't set time constant for auxilar input $chan" }
+    set n [lsearch -real -exact $tconsts $val]
+    if {$n<0} {error "unknown time constant setting: $val"}
+    $dev cmd "OFLT $n"
+  }
+
+  ############################
+  method get_range  {} {
+    if {$chan==1 || $chan==2} { return $aux_range}
+    set isrc [$dev cmd "ISRC?"]
+    if {$isrc == 0 || $isrc == 1} { set ranges $ranges_V } { set ranges $ranges_A }
+    set n [$dev cmd "SENS?"]
+    return [lindex $ranges $n]
+  }
+  method get_tconst {} {
+    if {$chan==1 || $chan==2} { return $aux_tconst}
+    set n [$dev cmd "OFLT?"]
+    return [lindex $tconsts $n]
+  }
+
+  method get_status_raw {} {
+    return [$dev cmd "LIAS?"]
+  }
+
+  method get_status {} {
+    set s [$dev cmd "LIAS?"]
+    if {$s & (1<<0)} {return "INP_OVR"}
+    if {$s & (1<<1)} {return "FLT_OVR"}
+    if {$s & (1<<2)} {return "OUTPT_OVR"}
+    if {$s & (1<<3)} {return "UNLOCK"}
+    if {$s & (1<<4)} {return "FREQ_LO"}
+    return ""
+  }
+
+}
+
+
+######################################################################
 # Use Picoscope as a gauge.
 #
 # Channels:
@@ -296,16 +404,16 @@ itcl::class picoscope {
     set osc_meas {}
     if {[regexp {^DC(\(([A-D]+)\))?$} $ch v0 v1 v2]} {
       set osc_meas DC
-      set osc_ch [split $v2 {}]
+      set_osc_ch [split $v2 {}]
       # defaults
-      if {$osc_ch == {}} {set osc_ch A}
+      if {$osc_ch == {}} {set_osc_ch A}
     }
     if {[regexp {^lockin(\(([A-D]+)\))?(:([FRXY]+))?$} $ch v0 v1 v2 v3 v4]} {
       set osc_meas lockin
-      set osc_ch [split $v2 {}]
+      set_osc_ch [split $v2 {}]
       set osc_out $v4
       # defaults
-      if {$osc_ch  == {}} {set osc_ch [list A B]}
+      if {$osc_ch  == {}} {set_osc_ch [list A B]}
       if {$osc_out == {}} {set osc_out FXY}
 
       # we want 2,4,6... channels
@@ -318,20 +426,7 @@ itcl::class picoscope {
 
 
     }
-    if {$osc_meas == {}} {
-      error "$this: bad channel setting: $ch"}
-
-    # fill osc_ach and osc_nch
-    set i 0
-    set osc_ach {}
-    array unset osc_nch
-    foreach ch $osc_ch {
-      if {[array names osc_nch $ch] == {}} {
-        set osc_ach "$osc_ach$ch"
-        set osc_nch($ch) $i
-        incr i
-      }
-    }
+    if {$osc_meas == {}} { error "$this: bad channel setting: $ch" }
 
     set dev $d
 
@@ -472,6 +567,22 @@ itcl::class picoscope {
   method list_tconsts {} { return $tconsts }
 
   ############################
+  method set_osc_ch  {val} {
+    set osc_ch $val
+    # fill osc_ach and osc_nch
+    set i 0
+    set osc_ach {}
+    array unset osc_nch
+    foreach ch $osc_ch {
+      if {[array names osc_nch $ch] == {}} {
+        set osc_ach "$osc_ach$ch"
+        set osc_nch($ch) $i
+        incr i
+      }
+    }
+  }
+
+  ############################
   method set_range  {val} {
     set n [lsearch -real -exact $ranges $val]
     if {$n<0} {error "unknown range setting: $val"}
@@ -504,6 +615,92 @@ itcl::class picoscope {
   method get_status_raw {} { return $status }
   method get_status {} { return $status }
 
+}
+
+
+######################################################################
+# Use Picoscope ADC as a gauge.
+#
+# Channels:
+
+# * `<channels>(r<range>)` -- measure DC signal on any oscilloscope channels
+#   (`01`, `02`, etc), return multiple values, one for each channel.
+#   Any number of channels with any order and repeats can be used. For example
+#   `110711(r1250)` returns three values: on 11, 07, and 11 channels.
+#
+
+itcl::class picoADC {
+  inherit interface
+  proc test_id {id} {
+    if {[regexp {pico_adc} $id]} {return 1}
+  }
+
+  variable osc_ch;      # oscilloscope channels (01120512)
+  variable osc_ach;     # list of channels: {01 12 05 12}
+  variable osc_uch;     # list of channels, unique and sorted: {01 05 12}
+  variable osc_uch_n;   # number of unique oscilloscope channels (3)
+
+  # lock-in ranges and time constants
+  common ranges {2500 1250 625 312.5 156.25 78.125 39.0625}; # mV
+  common tconvs {60 100 180 340 660};                        # ms
+  common tconv  180
+  common dt
+  common range
+
+  constructor {d ch id} {
+
+    set osc_meas {}
+    if {[regexp {^([0-9]+)\(r([0-9\.]+)\)?$} $ch v0 v1 v2]} {
+      set range $v2
+      if {[string length $v1] %2 != 0} {
+        error "$this: bad channel setting: 2-digits oscilloscope channels expected: $ch"}
+      set_osc_ch $v1
+      # defaults
+      if {$osc_ch == {}} {error "no channels"}
+    }
+
+    set dev $d
+
+    # set ADC time intervals.
+    set dt [expr $osc_uch_n*$tconv+100]
+    $dev cmd set_t $dt $tconv
+
+    # set ADC channels
+    $dev cmd chan_set [join $osc_uch ""] 1 1 $range
+  }
+
+  ############################
+  method get {{auto 0}} {
+    array unset ures
+    array unset ares
+    set uvals {*}[$dev cmd get]
+    puts $uvals
+    foreach v $uvals ch $osc_uch {
+      set ures($ch) $v
+    }
+    foreach ch $osc_ach {
+      lappend ares $ures($ch)
+    }
+    return $ares
+  }
+  method get_auto {} { return [get 1] }
+
+  ############################
+  method list_ranges {} { return $ranges }
+  method list_tconvs {} { return $tconvs }
+
+  ############################
+  method set_osc_ch  {val} {
+    set osc_ch $val
+    # fill osc_ach and osc_nch
+    set i 0
+    set osc_ach {}
+    foreach {c1 c2} [split $osc_ch {}] {
+      lappend osc_ach "$c1$c2"
+    }
+    set osc_uch [lsort -unique $osc_ach]
+    set osc_uch_n [llength $osc_uch]
+  }
 }
 
 
