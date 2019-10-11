@@ -262,7 +262,7 @@ itcl::class keysight_n6700b {
     if {$d1 == 1 && $d2 == 0} { return -1 }
     # wrong ping setting, we do not know what is relay position now
     # if current is zero we can cwitch pins to some good state:
-    if {abs([get_curr]-$min_i) < $i_prec} {
+    if { [get_curr_abs]-$min_i < $i_prec} {
       set_pol +1 $chan $sw_pos $sw_neg
       return +1
     }
@@ -311,8 +311,11 @@ itcl::class keysight_n6700b {
       set val [expr {$val*[get_pol $chan $sw_pos $sw_neg]}] }
     return $val
   }
+  method get_curr_abs {} {
+    return [$dev cmd "meas:curr? (@$chan)"]
+  }
   method get_curr {} {
-    set val [$dev cmd "meas:curr? (@$chan)"]
+    set val [get_curr_abs]
     if {$sw_pos!={} && $sw_neg!={}} {
       set val [expr {$val*[get_pol $chan $sw_pos $sw_neg]}] }
     return $val

@@ -674,7 +674,6 @@ itcl::class picoADC {
     array unset ures
     array unset ares
     set uvals {*}[$dev cmd get]
-    puts $uvals
     foreach v $uvals ch $osc_uch {
       set ures($ch) $v
     }
