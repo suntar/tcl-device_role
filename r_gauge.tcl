@@ -139,6 +139,59 @@ itcl::class keysight {
 }
 
 ######################################################################
+# Use Keithley nanovoltmeter 2182A as a gauge device.
+#
+# ID strings:
+# KEITHLEY INSTRUMENTS INC.,MODEL 2182A,1193143,C02 /A02
+# Use channels DCV1 DCV2
+
+itcl::class keithley_nanov {
+  inherit interface
+  proc test_id {id} {
+    if {[regexp {2182A,} $id]} {return {2182A}}
+    return {}
+  }
+
+  variable chan;  # channel to use (1..2)
+
+  constructor {d ch id} {
+    switch -exact -- $ch {
+      DCV1 {  set cmd "conf:volt:DC\nsens:chan 1\nsens:volt:rang:auto" }
+      DCV2 {  set cmd "conf:volt:DC\nsens:chan 2\nsens:volt:rang:auto" }
+      default {
+        error "$this: bad channel setting: $ch"
+        return
+      }
+    }
+    set dev $d
+    set chan $ch
+    $dev cmd "samp:count 1"
+    $dev cmd $cmd
+  }
+
+  ############################
+  method get {} {
+    return [$dev cmd "read?"]
+  }
+  method get_auto {} {
+    return [get]
+  }
+
+  ############################
+  method list_ranges {} {
+  }
+
+  ############################
+  method set_range  {val} {
+  }
+
+  ############################
+  method get_range  {} {
+  }
+
+}
+
+######################################################################
 # Use Lockin SR844 as a gauge.
 #
 # ID string:
@@ -239,7 +292,6 @@ itcl::class sr844 {
   }
 
 }
-
 
 ######################################################################
 # Use Lockin SR830 as a gauge.
@@ -347,7 +399,6 @@ itcl::class sr830 {
   }
 
 }
-
 
 ######################################################################
 # Use Picoscope as a gauge.
@@ -617,7 +668,6 @@ itcl::class picoscope {
 
 }
 
-
 ######################################################################
 # Use Picoscope ADC as a gauge.
 #
@@ -701,7 +751,6 @@ itcl::class picoADC {
     set osc_uch_n [llength $osc_uch]
   }
 }
-
 
 ######################################################################
 # Use Agilent VS leak detector as a gauge.
