@@ -74,11 +74,13 @@ itcl::class TEST {
 
 ######################################################################
 # Use Keysight/Agilent/HP multimeters 34401A, 34461A as a gauge device.
+# Also works with Keyley 2000 multimeter
 #
 # ID strings:
 #   Keysight Technologies,34461A,MY53220594,A.02.14-02.40-02.14-00.49-01-01
 #   Agilent Technologies,34461A,MY53200874,A.01.08-02.22-00.08-00.35-01-01
 #   HEWLETT-PACKARD,34401A,0,6-4-2
+#   KEITHLEY INSTRUMENTS INC.,MODEL 2000,1234147,A20 /A02
 #
 # Use channels ACI, DCI, ACV, DCV, R2, R4
 
@@ -87,10 +89,9 @@ itcl::class keysight {
   proc test_id {id} {
     if {[regexp {,34461A,} $id]} {return {34461A}}
     if {[regexp {,34401A,} $id]} {return {34401A}}
+    if {[regexp {KEITHLEY.*MODEL.2000} $id]} {return {Keythley2000}}
     return {}
   }
-
-  variable chan;  # channel to use (1..2)
 
   constructor {d ch id} {
     switch -exact -- $ch {
@@ -106,7 +107,6 @@ itcl::class keysight {
       }
     }
     set dev $d
-    set chan $ch
     $dev cmd $cmd
   }
 
