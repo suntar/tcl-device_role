@@ -220,6 +220,7 @@ itcl::class sr844 {
       error "$this: bad channel setting: $ch"}
     set chan $ch
     set dev $d
+    get_status_raw
   }
 
   ############################
@@ -280,15 +281,16 @@ itcl::class sr844 {
 
   method get_status {} {
     set s [$dev cmd "LIAS?"]
-    if {$s & (1<<0)} {return "UNLOCK"}
-    if {$s & (1<<7)} {return "FRE_CH"}
-    if {$s & (1<<1)} {return "FREQ_OVR"}
-    if {$s & (1<<4)} {return "INP_OVR"}
-    if {$s & (1<<5)} {return "AMP_OVR"}
-    if {$s & (1<<6)} {return "FLT_OVR"}
-    if {$s & (1<<8)} {return "CH1_OVR"}
-    if {$s & (1<<9)} {return "CH2_OVR"}
-    return ""
+    set res {}
+    if {$s & (1<<0)} {lappend res "UNLOCK"}
+    if {$s & (1<<7)} {lappend res "FRE_CH"}
+    if {$s & (1<<1)} {lappend res "FREQ_OVR"}
+    if {$s & (1<<4)} {lappend res "INP_OVR"}
+    if {$s & (1<<5)} {lappend res "AMP_OVR"}
+    if {$s & (1<<6)} {lappend res "FLT_OVR"}
+    if {$s & (1<<8)} {lappend res "CH1_OVR"}
+    if {$s & (1<<9)} {lappend res "CH2_OVR"}
+    return [join $res " "]
   }
 
 }
@@ -390,12 +392,13 @@ itcl::class sr830 {
 
   method get_status {} {
     set s [$dev cmd "LIAS?"]
-    if {$s & (1<<0)} {return "INP_OVR"}
-    if {$s & (1<<1)} {return "FLT_OVR"}
-    if {$s & (1<<2)} {return "OUTPT_OVR"}
-    if {$s & (1<<3)} {return "UNLOCK"}
-    if {$s & (1<<4)} {return "FREQ_LO"}
-    return ""
+    set res {}
+    if {$s & (1<<0)} {lappend res "INP_OVR"}
+    if {$s & (1<<1)} {lappend res "FLT_OVR"}
+    if {$s & (1<<2)} {lappend res "OUTPT_OVR"}
+    if {$s & (1<<3)} {lappend res "UNLOCK"}
+    if {$s & (1<<4)} {lappend res "FREQ_LO"}
+    return [join $res " "]
   }
 
 }
