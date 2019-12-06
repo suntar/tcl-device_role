@@ -486,28 +486,40 @@ itcl::class picoscope {
 
     # oscilloscope ranges
     set ranges [lindex [$dev cmd ranges A] 0]
-    set tconst  1.0
-    set range   1.0
+    set range [get_range]
+    if { $range == "undef" } {set range 1.0}
     set range_ref 10.0
+    setup_osc_chans
+
+    set tconst 1.0
+
     set sigfile "/tmp/$dev:gauge.sig"
     set status "OK"
   }
 
   ############################
-  method get {{auto 0}} {
-
+  method setup_osc_chans {} {
+    # oscilloscope setup (pairs of channels: signal+reference)
     if {$osc_meas=="lockin"} {
+      foreach {c1 c2} $osc_ch {
+        $dev cmd chan_set $c1 1 AC $range
+        if {$c1 != $c2} { $dev cmd chan_set $c2 1 AC $range_ref }
+        }
+    }
+    if {$osc_meas=="DC"} {
+        # oscilloscope setup
+        foreach ch $osc_ch {
+          $dev cmd chan_set $ch 1 DC $range
+        }
+    }
+  }
 
+  ############################
+  method get {{auto 0}} {
+    if {$osc_meas=="lockin"} {
       set dt [expr $tconst/$npt]
       set justinc 0; # avoid inc->dec loops
       while {1} {
-        # oscilloscope setup (pairs of channels: signal+reference)
-        foreach {c1 c2} $osc_ch {
-          $dev cmd chan_set $c1 1 AC $range
-          if {$c1 != $c2} {
-            $dev cmd chan_set $c2 1 AC $range_ref
-          }
-        }
         $dev cmd trig_set NONE 0.1 FALLING 0
         # record signal
         $dev cmd block $osc_ach 0 $npt $dt $sigfile
@@ -568,10 +580,6 @@ itcl::class picoscope {
       set justinc 0; # avoid inc->dec loops
 
       while {1} {
-        # oscilloscope setup
-        foreach ch $osc_ch {
-          $dev cmd chan_set $ch 1 DC $range
-        }
         $dev cmd trig_set NONE 0.1 FALLING 0
         # record signal
         $dev cmd block $osc_ach 0 $npt $dt $sigfile
@@ -641,31 +649,35 @@ itcl::class picoscope {
     set n [lsearch -real -exact $ranges $val]
     if {$n<0} {error "unknown range setting: $val"}
     set range $val
+    setup_osc_chans
   }
-
+  method get_range {} {
+    set c [lindex $osc_ch 0]
+    set ch_cnf [lindex [$dev cmd chan_get $c] 0]
+    return [lindex $ch_cnf end]
+  }
   method dec_range {} {
     set n [lsearch -real -exact $ranges $range]
     if {$n<0} {error "unknown range setting: $range"}
     if {$n==0} {error "range already at minimum: $range"}
-    set range [lindex $ranges [expr $n-1]]
+    set_range [lindex $ranges [expr $n-1]]
   }
-
   method inc_range {} {
     set n [lsearch -real -exact $ranges $range]
     set nmax [expr {[llength $ranges] - 1}]
     if {$n<0} {error "unknown range setting: $range"}
     if {$n>=$nmax} {error "range already at maximum: $range"}
-    set range [lindex $ranges [expr $n+1]]
+    set_range [lindex $ranges [expr $n+1]]
   }
 
+  ############################
   method set_tconst {val} {
     # can work with any tconst!
     set tconst $val
   }
+  method get_tconst {} { return $tconst }
 
   ############################
-  method get_range  {} { return $range }
-  method get_tconst {} { return $tconst }
   method get_status_raw {} { return $status }
   method get_status {} { return $status }
 
