@@ -70,6 +70,13 @@ itcl::class TEST {
   method get_auto {} {
     return [get]
   }
+  method list_ranges  {} {return [list 1.0 2.0 3.0]}
+  method list_tconsts {} {return [list 0.1 0.2 0.3]}
+  method get_range  {} {return 1.0}
+  method get_tconst {} {return 0.1}
+  method set_range  {v} {}
+  method set_tconst {v} {}
+  method get_status {} {return TEST}
 }
 
 ######################################################################
@@ -290,6 +297,7 @@ itcl::class sr844 {
     if {$s & (1<<6)} {lappend res "FLT_OVR"}
     if {$s & (1<<8)} {lappend res "CH1_OVR"}
     if {$s & (1<<9)} {lappend res "CH2_OVR"}
+    if {$res == {}} {lappend res "OK"}
     return [join $res " "]
   }
 
@@ -398,6 +406,7 @@ itcl::class sr830 {
     if {$s & (1<<2)} {lappend res "OUTPT_OVR"}
     if {$s & (1<<3)} {lappend res "UNLOCK"}
     if {$s & (1<<4)} {lappend res "FREQ_LO"}
+    if {$res == {}} {lappend res "OK"}
     return [join $res " "]
   }
 
