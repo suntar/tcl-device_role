@@ -709,10 +709,8 @@ itcl::class picoADC {
     if {[regexp {pico_adc} $id]} {return 1}
   }
 
-  variable osc_ch {};     # oscilloscope channels (01120512)
-  variable osc_ach {};    # list of channels: {01 12 05 12}
-  variable osc_uch {};    # list of channels, unique and sorted: {01 05 12}
-  variable osc_uch_n 0;   # number of unique oscilloscope channels (3)
+  variable adc_ach {};    # list of channels: {01 12 05 12}
+  variable adc_uch {};    # list of channels, unique and sorted: {01 05 12}
 
   # lock-in ranges and time constants
   common ranges {2500 1250 625 312.5 156.25 78.125 39.0625}; # mV
@@ -723,25 +721,31 @@ itcl::class picoADC {
 
   constructor {d ch id} {
 
-    set osc_meas {}
+    set dev $d
+    set adc_meas {}
+
     if {[regexp {^([0-9]+)\(r([0-9\.]+)\)?$} $ch v0 v1 v2]} {
       set range $v2
       if {[string length $v1] %2 != 0} {
         error "$this: bad channel setting: 2-digits oscilloscope channels expected: $ch"}
-      set_osc_ch $v1
+
+      foreach {c1 c2} [split $v1 {}] {
+        lappend adc_ach "$c1$c2"
+      }
     }
 
-    # defaults
-    if {$osc_ch == {}} {error "no channels"}
+    # no channels set
+    if {[llength $adc_ach] == 0} {error "no channels"}
 
-    set dev $d
-
-    # set ADC time intervals.
-    set dt [expr $osc_uch_n*$tconv+100]
-    $dev cmd set_t $dt $tconv
+    # list of sorted unique channels
+    set adc_uch [lsort -unique $adc_ach]
 
     # set ADC channels
-    $dev cmd chan_set [join $osc_uch ""] 1 1 $range
+    $dev cmd chan_set [join $adc_uch ""] 1 1 $range
+
+    # set ADC time intervals.
+    set dt [expr [llength $adc_uch]*$tconv+100]
+    $dev cmd set_t $dt $tconv
   }
 
   ############################
@@ -749,10 +753,10 @@ itcl::class picoADC {
     array unset ures
     array unset ares
     set uvals {*}[$dev cmd get]
-    foreach v $uvals ch $osc_uch {
+    foreach v $uvals ch $adc_uch {
       set ures($ch) $v
     }
-    foreach ch $osc_ach {
+    foreach ch $adc_ach {
       lappend ares $ures($ch)
     }
     return $ares
@@ -763,18 +767,6 @@ itcl::class picoADC {
   method list_ranges {} { return $ranges }
   method list_tconvs {} { return $tconvs }
 
-  ############################
-  method set_osc_ch  {val} {
-    set osc_ch $val
-    # fill osc_ach and osc_nch
-    set i 0
-    set osc_ach {}
-    foreach {c1 c2} [split $osc_ch {}] {
-      lappend osc_ach "$c1$c2"
-    }
-    set osc_uch [lsort -unique $osc_ach]
-    set osc_uch_n [llength $osc_uch]
-  }
 }
 
 ######################################################################
