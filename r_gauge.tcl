@@ -716,21 +716,48 @@ itcl::class picoADC {
   common ranges {2500 1250 625 312.5 156.25 78.125 39.0625}; # mV
   common tconvs {60 100 180 340 660};                        # ms
   common tconv  180
-  common dt
-  common range
 
   constructor {d ch id} {
 
     set dev $d
     set adc_meas {}
 
+    array unset range;  # range array (for each channel)
+    array unset single; # single-ended mode, 1 or 0, array (for each channel)
+
+    # Original channel setting: "device:010203(r2500)".
+    # Any channel order, single rande for all channels,
+    # only single-ended measurements.
     if {[regexp {^([0-9]+)\(r([0-9\.]+)\)?$} $ch v0 v1 v2]} {
-      set range $v2
       if {[string length $v1] %2 != 0} {
         error "$this: bad channel setting: 2-digits oscilloscope channels expected: $ch"}
 
       foreach {c1 c2} [split $v1 {}] {
-        lappend adc_ach "$c1$c2"
+        set c "$c1$c2"
+        lappend adc_ach $c
+        set range($c) $v2
+        set single($c) 1
+      }
+
+    } else {
+    # New channel setting: "device:1s2500,2d1000,12s1000"
+    # Single/double-ended measurements, separate ranges.
+    # Duplicated channels are not allowed.
+      foreach c [split $ch {,}] {
+        if {[regexp {^([0-9]+)([sd])([0-9\.]+)} $c v0 vch vsd vrng]} {
+
+          if {[lsearch $adc_ach $vch] >=0 } {
+            error "duplicated channel $vch in $c"}
+
+          set vch [format {%d} $vch]
+          lappend adc_ach "$vch"
+          set range($vch) $vrng
+          set single($vch) [expr {"$vsd"=="s"? 1:0}]
+
+          if {!$single($vch) && $vch%2 != 1} {
+            error "can't set double-ended mode for even-numbered channel: $c" }
+        }\
+        else {error "wrong channel setting: $c"}
       }
     }
 
@@ -741,7 +768,9 @@ itcl::class picoADC {
     set adc_uch [lsort -unique $adc_ach]
 
     # set ADC channels
-    $dev cmd chan_set [join $adc_uch ""] 1 1 $range
+    foreach c $adc_uch {
+      $dev cmd chan_set [format "%02d" $c] 1 $single($c) $range($c)
+    }
 
     # set ADC time intervals.
     set dt [expr [llength $adc_uch]*$tconv+100]
