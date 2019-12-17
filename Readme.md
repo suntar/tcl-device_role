@@ -229,15 +229,25 @@ get_tconst {} {}; # get current time constant setting
 
 Supported devices:
 
-* Keysight 34401A, 34461A multimeter. Use channels ACI, DCI, ACV, DCV, R2, R4.
-Only autorange measurements are supported.
+* Keysight 34401A, 34461A, Keythley-2000 multimeters. Use channels ACI,
+DCI, ACV, DCV, R2, R4. Only autorange measurements are supported.
 
-* SR844 lock-in. Use channels 1 or 2 to select auxilary input,
-use channels XY, RT, FXY, FRT to get X, Y, R, Theta, Frequency
-combinations. Full range/tconst/autorange support.
+* Keysight 34972A multiplexer. Use space-separaded list of channel settings
+<prefix>(<channels>) where <prefix> is ACI, DCI, ACV, DCV, R2, R4 and
+channels are comma-separated lists, or colon-separated ranges:
+101:105,109 etc.
+
+* SRS SR844, SR840 lock-in amplifiers. Use channels 1 or 2 to select
+auxilary input, use channels XY, RT, FXY, FRT to get X, Y, R, Theta,
+Frequency combinations. Full range/tconst/autorange support.
 
 * PicoScope, lockin and DC measurements with pico_rec+pico_filter program.
 Channels: lockin(<channels>):XY, lockin(<channels>):FXY, DC(<channels>)
+
+* PicoADC with pico_adc program. Channels: comma-separated list of
+<channal><mode><range> values. Where channel is 1,2,3 etc., mode is `s`
+for single-ended measurement, `d` for double-ended measurement, range is
+2500, 1250, 625, 312.5, 156.25, 78.125, or 39.0625 (in millivolts).
 
 * Agilent VS leak detector. Returns three values: leak rate,
 output pressure (mbar), input pressure (mbar)
