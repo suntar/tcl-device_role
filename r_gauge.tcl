@@ -844,7 +844,7 @@ itcl::class picoADC {
     if {[llength $adc_ach] == 0} {error "no channels"}
 
     # list of sorted unique channels
-    set adc_uch [lsort -unique $adc_ach]
+    set adc_uch [lsort -integer -unique $adc_ach]
 
     # set ADC channels
     foreach c $adc_uch {
