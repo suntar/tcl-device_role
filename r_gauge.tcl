@@ -249,7 +249,9 @@ itcl::class keysight_mplex {
   ############################
   method get {} {
     set ret {}
-    foreach c $cmds { lappend ret [$dev cmd $c] }
+    foreach c $cmds {
+      set ret [concat $ret [split [$dev cmd $c] {,}]]
+    }
     return $ret
   }
   method get_auto {} {
