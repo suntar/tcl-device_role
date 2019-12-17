@@ -709,10 +709,10 @@ itcl::class picoADC {
     if {[regexp {pico_adc} $id]} {return 1}
   }
 
-  variable osc_ch;      # oscilloscope channels (01120512)
-  variable osc_ach;     # list of channels: {01 12 05 12}
-  variable osc_uch;     # list of channels, unique and sorted: {01 05 12}
-  variable osc_uch_n;   # number of unique oscilloscope channels (3)
+  variable osc_ch {};     # oscilloscope channels (01120512)
+  variable osc_ach {};    # list of channels: {01 12 05 12}
+  variable osc_uch {};    # list of channels, unique and sorted: {01 05 12}
+  variable osc_uch_n 0;   # number of unique oscilloscope channels (3)
 
   # lock-in ranges and time constants
   common ranges {2500 1250 625 312.5 156.25 78.125 39.0625}; # mV
@@ -729,9 +729,10 @@ itcl::class picoADC {
       if {[string length $v1] %2 != 0} {
         error "$this: bad channel setting: 2-digits oscilloscope channels expected: $ch"}
       set_osc_ch $v1
-      # defaults
-      if {$osc_ch == {}} {error "no channels"}
     }
+
+    # defaults
+    if {$osc_ch == {}} {error "no channels"}
 
     set dev $d
 
