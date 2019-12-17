@@ -746,10 +746,10 @@ itcl::class picoADC {
       foreach c [split $ch {,}] {
         if {[regexp {^([0-9]+)([sd])([0-9\.]+)} $c v0 vch vsd vrng]} {
 
+          set vch [format {%d} $vch]
           if {[lsearch $adc_ach $vch] >=0 } {
             error "duplicated channel $vch in $c"}
 
-          set vch [format {%d} $vch]
           lappend adc_ach "$vch"
           set range($vch) $vrng
           set single($vch) [expr {"$vsd"=="s"? 1:0}]
