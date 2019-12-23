@@ -78,14 +78,16 @@ itcl::class keysight {
   }
 }
 ######################################################################
-# Use LakeShore 370 heater output as a dc source.
-# The device is a current source. You set up heater resistior in
-# the channel setting and control voltage on the heater.
-#
+# Use LakeShore 370 outputs as dc sources.
 # ID string:
 #   LSCI,MODEL370,370A5K,04102008
 #
-# Use channel setting: HTR<range>:<heater_resistance_ohm>
+# 1. Heater output.
+#
+# The device is a current source. You set up heater resistior in
+# the channel setting and control voltage on the heater.
+#
+# Channel setting: HTR<range>:<heater_resistance_ohm>
 #   range:
 #   1 - 31.6 uA
 #   2 - 100 uA
@@ -95,6 +97,16 @@ itcl::class keysight {
 #   6 - 10 mA
 #   7 - 31.6 mA
 #   8 - 100 mA
+#
+# Example: HTR8:150
+#
+# 2. Analog outputs 1 and 2, output 0..10V in unipolar mode,
+#    -10..10V in bipolar mode
+#
+# Channel setting ANALOG<N>(u|b)
+#
+# Example: ANALOG1u -- analog output 1 in unipolar mode
+
 
 itcl::class LSCI370 {
   inherit interface
@@ -106,44 +118,91 @@ itcl::class LSCI370 {
   variable chan;  # channel to use (1..2)
   variable res; # heater resistance
   variable rng; # heater curent range, A
+  variable output; # H 1 2
+  variable bipolar; # 0 1
 
   constructor {d ch id} {
-    if {![regexp {^HTR([1-8]):([0-9e.]+)$} $ch v rng_num res]} {
-      error "$this: bad channel setting: $ch"}
 
     set dev $d
 
-    switch -exact -- $rng_num {
-      1 {set rng 3.16e-5}
-      2 {set rng 1.00e-4}
-      3 {set rng 3.16e-4}
-      4 {set rng 1.00e-3}
-      5 {set rng 3.16e-3}
-      6 {set rng 1.00e-2}
-      7 {set rng 3.16e-2}
-      8 {set rng 1.00e-1}
+    ## Heater output
+    if {[regexp {^HTR([1-8]):([0-9e.]+)$} $ch v rng_num res]} {
+
+      switch -exact -- $rng_num {
+        1 {set rng 3.16e-5}
+        2 {set rng 1.00e-4}
+        3 {set rng 3.16e-4}
+        4 {set rng 1.00e-3}
+        5 {set rng 3.16e-3}
+        6 {set rng 1.00e-2}
+        7 {set rng 3.16e-2}
+        8 {set rng 1.00e-1}
+      }
+      set output "H"
+      set min_v 0
+      set max_v [expr $rng*$res]
+      set min_v_step [expr 1e-5*$max_v]
+
+      $dev cmd HTRRNG $rng_num
+      $dev cmd CMODE  3
+      return
     }
 
-    set min_v 0
-    set max_v [expr $rng*$res]
-    set min_v_step [expr 1e-6*$max_v]
+    ## Analog output
+    if {[regexp {^ANALOG([12])([ub])$} $ch v output bipolar]} {
+      set bipolar [expr {$bipolar == "u" ? 0:1}]
 
-    $dev cmd HTRRNG $rng_num
-    $dev cmd CMODE  3
+      set min_v [expr $bipolar? -10:0]
+      set max_v 10.0
+      set min_v_step [expr 1e-5*$max_v]
+      set ret [$dev cmd "ANALOG? $output"]
+      set ret [split $ret ","]
+      lset ret 0 $bipolar
+      lset ret 1 2
+      $dev cmd "ANALOG $output,[join $ret {,}]"
+      return
+    }
+
+    error "$this: bad channel setting: $ch"
+
   }
+
   method set_volt {volt} {
-    # calculate heater output
-    set v [expr 100*$volt/$max_v]
-    if {$v > 100} {set v 100}
-    if {$v < 0} {set v 0}
-    $dev cmd "MOUT $v"
+    if {$output == {H}} {
+      # calculate heater output
+      set v [expr 100*$volt/$max_v]
+      if {$v > 100} {set v 100}
+      if {$v < 0} {set v 0}
+      $dev cmd "MOUT $v"
+    }\
+    else {
+      set v [expr 100.0*$volt/$max_v]
+      if {$v > 100} {set v 100}
+      if {$v < -100} {set v -100}
+      if {!$bipolar && $v < 0} {set v 0}
+      set ret [$dev cmd "ANALOG? $output"]
+      set ret [split $ret ","]
+      lset ret 6 $v
+      $dev cmd "ANALOG $output,[join $ret {,}]"
+
+    }
   }
+
   method off {} {
     set_volt 0
   }
+
   method get_volt {} {
-    set v [$dev cmd "MOUT?"]
-    return [expr $v*$max_v/100]
+    if {$output == {H}} {
+      set v [$dev cmd "MOUT?"]
+      return [expr $v*$max_v/100.0]
+    }\
+    else {
+      set ret [$dev cmd "ANALOG? $output"]
+      set ret [split $ret ","]
+      set v [lindex $ret 6]
+      return [expr $v*$max_v/100.0]
+    }
   }
 }
 
