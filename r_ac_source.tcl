@@ -19,6 +19,7 @@ itcl::class interface {
   # methods which should be defined by driver:
   method set_ac {freq volt {offs 0}} {};      # reconfigure output, set frequency, voltage, offset
   method off       {} {};    # turn off the signal
+  method on        {} {};    # turn on the signal
 
   method get_volt  {} {};    # get voltage value
   method get_freq  {} {};    # get frequency value
@@ -43,12 +44,14 @@ itcl::class TEST {
   variable volt
   variable offs
   variable phase
+  variable onoff
 
   constructor {d ch id} {
     set freq 1000
     set volt 0.1
     set offs  0
     set phase 0
+    set onoff 1
     set min_v 0
     set max_v 10
   }
@@ -59,14 +62,13 @@ itcl::class TEST {
     set freq $f
     set volt $v
     set offs $o
+    set onoff 1
   }
-  method off {} {
-    set volt 0
-    set offs 0
-  }
-  method get_volt {} { return $volt }
+  method off {} { set onoff 0 }
+  method on  {} { set onoff 1 }
+  method get_volt {} { return [expr {$onoff ? $volt : 0}]}
   method get_freq {} { return $freq }
-  method get_offs {} { return $offs }
+  method get_offs {} { return [expr {$onoff ? $offs : 0}] }
   method get_phase {} { return $phase }
 
   method set_volt {v}  { set volt $v }
@@ -112,8 +114,17 @@ itcl::class keysight {
     set_par "OUTP${chan}" "1"
   }
   method off {} {
-    set_par "${sour_pref}VOLT" $min_v
+#  # For Keysight generators it maybe useful to set VOLT to $min_v
+#  # to reduce signal leakage.
+#  # But this can work in some unexpected way if 
+#  # voltage will be read and changed in the "off" state.
+#    set old_v [get_volt]
+#    set_par "${sour_pref}VOLT" $min_v
     set_par "OUTP${chan}" 0
+  }
+  method on {} {
+#    set_par "${sour_pref}VOLT" $old_v
+    set_par "OUTP${chan}" 1
   }
   method get_volt {}  {
     if {[$dev cmd "OUTP${chan}?"] == 0} {return 0}

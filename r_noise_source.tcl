@@ -22,6 +22,7 @@ itcl::class interface {
   method get_bw    {} {};    # get bandwidth value
   method get_offs  {} {};    # get bandwidth value
   method off       {} {};    # turn off the signal
+  method on        {} {};    # turn on the signal
 }
 
 ######################################################################
@@ -33,11 +34,13 @@ itcl::class TEST {
   variable volt
   variable bw
   variable offs
+  variable onoff
 
   constructor {d ch id} {
     set volt 0
     set bw 1000
     set offs 0
+    set onoff 1
     set max_v 10
     set min_v 0
   }
@@ -47,11 +50,13 @@ itcl::class TEST {
     set volt $v
     set offs $o
     set bw   $b
+    set onoff 1
   }
-  method get_volt {} { return $volt }
+  method get_volt {} { return [expr {$onoff ? $volt:0}] }
   method get_bw   {} { return $bw }
-  method get_offs {} { return $offs }
-  method off {} {set volt 0; set offs 0;}
+  method get_offs {} { return [expr {$onoff ? $offs:0}] }
+  method off {} {set onoff 0;}
+  method on  {} {set onoff 1;}
 }
 
 ######################################################################
@@ -78,10 +83,16 @@ itcl::class keysight {
     set_par "OUTP${chan}" "1"
   }
   method off {} {
-    set_par "${sour_pref}VOLT" $min_v
-    set_par "${sour_pref}VOLT:OFFS" 0
-    set_par "${sour_pref}FUNC:NOISE:BANDWIDTH" 10e6
+#    set_par "${sour_pref}VOLT" $min_v
+#    set_par "${sour_pref}VOLT:OFFS" 0
+#    set_par "${sour_pref}FUNC:NOISE:BANDWIDTH" 10e6
     set_par "OUTP${chan}" "0"
+  }
+  method on {} {
+#    set_par "${sour_pref}VOLT" $old_v
+#    set_par "${sour_pref}VOLT:OFFS" $old_offs
+#    set_par "${sour_pref}FUNC:NOISE:BANDWIDTH" $old_bw
+    set_par "OUTP${chan}" "1"
   }
   method get_volt {} {
     if {[$dev cmd "OUTP${chan}?"] == 0} {return 0}
