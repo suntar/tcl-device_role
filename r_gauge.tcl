@@ -7,11 +7,32 @@ package require Device
 namespace eval device_role::gauge {
 
 ######################################################################
-## Interface class. All power_supply driver classes are children of it
+## Interface class. All gauge driver classes are children of it
 itcl::class interface {
   inherit device_role::base_interface
   proc test_id {id} {}
 
+
+  ##################
+  # variables to be set in the driver:
+  variable valnames; # Names of returned values (list)
+
+  # Number of values returned by get command
+  method get_val_num {} {
+    return [llength valnames]
+  }
+
+  # Return text name of the n-th value
+  # For lockin it can be X or Y,
+  # For multi-channel ADC it could be CH1, CH2, etc.
+  method get_val_name {n} {
+    if {$n<0 || $n>[llength valnames]} {
+      error "get_val_name: value number $n is out of range 0..[llength valnames]"}
+    return [lindex $valnames $n]
+  }
+
+
+  ##################
   # methods which should be defined by driver:
   method get {} {}; # do the measurement, return one or more numbers
 
@@ -53,6 +74,7 @@ itcl::class TEST {
     if {$n<1 || $n>$maxn} {
       error "Bad number in the cannel setting: $ch"
     }
+    for {set i 0} {$i<$n} {incr i} {lappend valnames $i}
   }
   destructor {}
 
@@ -116,6 +138,7 @@ itcl::class keysight {
       }
     }
     set dev $d
+    set valnames $chan
     $dev cmd $cmd
   }
 
@@ -161,8 +184,6 @@ itcl::class keithley_nanov {
     return {}
   }
 
-  variable chan;  # channel to use (1..2)
-
   constructor {d ch id} {
     switch -exact -- $ch {
       DCV1 {  set cmd "conf:volt:DC\nsens:chan 1\nsens:volt:rang:auto" }
@@ -173,7 +194,7 @@ itcl::class keithley_nanov {
       }
     }
     set dev $d
-    set chan $ch
+    set valnames "$ch"
     $dev cmd "samp:count 1"
     $dev cmd $cmd
   }
@@ -225,10 +246,10 @@ itcl::class keysight_mplex {
 
   constructor {d ch id} {
     set dev $d
-
     foreach c [split $ch { +}] {
       if {[regexp {^([A-Z0-9]+)\(([0-9:,]+)\)$} $c v0 vmeas vch]} {
 
+        # Add measurement commend for a group of channels:
         switch -exact -- $vmeas {
           DCV {  lappend cmds "meas:volt:dc? (@$vch)" }
           ACV {  lappend cmds "meas:volt:ac? (@$vch)" }
@@ -239,6 +260,20 @@ itcl::class keysight_mplex {
           default {
             error "$this: bad channel setting: $c"
             return
+          }
+        }
+
+        # Calculate number of device channels
+        #  N1:N2,N3,N3 etc.
+        foreach c [split $vch {,}] {
+          if {[regexp {^ *([0-9]+) *$} $c v0 n1]} {
+            lappend valnames $n1
+          }\
+          elseif {[regexp {^ *([0-9]+):([0-9]+) *$} $c v0 n1 n2]} {
+            if {$n2<=$n1} {error "non-increasing channel range: $c"
+            for {set n $n1} {$n<=$n2} {incr n} {
+              lappend valnames $n
+            }
           }
         }
 
@@ -306,8 +341,15 @@ itcl::class sr844 {
   common aux_tconst 3e-4; # auxilary input bandwidth: 3kHz
 
   constructor {d ch id} {
-    if {$ch!=1 && $ch!=2 && $ch!="XY" && $ch!="RT" && $ch!="FXY" && $ch!="FRT"} {
-      error "$this: bad channel setting: $ch"}
+    switch -exact -- $ch {
+      1   {set valnames {AUX1}}
+      2   {set valnames {AUX2}}
+      XY  {set valnames [list X Y]}
+      RT  {set valnames [list R T]}
+      FXY {set valnames [list F X Y]}
+      FRT {set valnames [list F R T]}
+      default {error "$this: bad channel setting: $ch"}
+    }
     set chan $ch
     set dev $d
     get_status_raw
@@ -415,8 +457,15 @@ itcl::class sr830 {
   common isrc;            # input 0-3 A/A-B/I_1MOhm/I_100MOhm
 
   constructor {d ch id} {
-    if {$ch!=1 && $ch!=2 && $ch!="XY" && $ch!="RT" && $ch!="FXY" && $ch!="FRT"} {
-      error "$this: bad channel setting: $ch"}
+    switch -exact -- $ch {
+      1   {set valnames {AUX1}}
+      2   {set valnames {AUX2}}
+      XY  {set valnames [list X Y]}
+      RT  {set valnames [list R T]}
+      FXY {set valnames [list F X Y]}
+      FRT {set valnames [list F R T]}
+      default {error "$this: bad channel setting: $ch"}
+    }
     set chan $ch
     set dev $d
   }
@@ -551,8 +600,13 @@ itcl::class picoscope {
     if {[regexp {^DC(\(([A-D]+)\))?$} $ch v0 v1 v2]} {
       set osc_meas DC
       set_osc_ch [split $v2 {}]
+      set valnames [split $v2 {}]
       # defaults
-      if {$osc_ch == {}} {set_osc_ch A}
+      if {$osc_ch == {}} {
+        set_osc_ch A
+        set valnames "A"
+      }
+
     }
     if {[regexp {^lockin(\(([A-D]+)\))?(:([FRXY]+))?$} $ch v0 v1 v2 v3 v4]} {
       set osc_meas lockin
@@ -567,10 +621,13 @@ itcl::class picoscope {
         error "$this: bad channel setting: 2,4... oscilloscope channels expected: $ch"}
 
       # output format
-      if {$osc_out != {XY} && $osc_out != {FXY}} {
-        error "$this: bad channel setting: only XY or FXY output is supported: $ch"}
-
-
+      for {set i 0} {$i<[llength $osc_ch]/2} {incr i} {
+        switch -exact -- $osc_out {
+          XY  {lappend valnames "X$i"; lappend valnames "Y$i"}
+          FXY {lappend valnames "F$i"; lappend valnames "X$i"; lappend valnames "Y$i"}
+          default {error "$this: bad channel setting: only XY or FXY output is supported: $ch"}
+        }
+      }
     }
     if {$osc_meas == {}} { error "$this: bad channel setting: $ch" }
 
@@ -603,6 +660,22 @@ itcl::class picoscope {
         foreach ch $osc_ch {
           $dev cmd chan_set $ch 1 DC $range
         }
+    }
+  }
+
+  ############################
+  method set_osc_ch  {val} {
+    set osc_ch $val
+    # fill osc_ach and osc_nch
+    set i 0
+    set osc_ach {}
+    array unset osc_nch
+    foreach ch $osc_ch {
+      if {[array names osc_nch $ch] == {}} {
+        set osc_ach "$osc_ach$ch"
+        set osc_nch($ch) $i
+        incr i
+      }
     }
   }
 
@@ -720,21 +793,6 @@ itcl::class picoscope {
   method list_ranges {} { return $ranges }
   method list_tconsts {} { return $tconsts }
 
-  ############################
-  method set_osc_ch  {val} {
-    set osc_ch $val
-    # fill osc_ach and osc_nch
-    set i 0
-    set osc_ach {}
-    array unset osc_nch
-    foreach ch $osc_ch {
-      if {[array names osc_nch $ch] == {}} {
-        set osc_ach "$osc_ach$ch"
-        set osc_nch($ch) $i
-        incr i
-      }
-    }
-  }
 
   ############################
   method set_range  {val} {
@@ -818,6 +876,7 @@ itcl::class picoADC {
       foreach {c1 c2} [split $v1 {}] {
         set c "$c1$c2"
         lappend adc_ach $c
+        lappend valnames $c
         set range($c) $v2
         set single($c) 1
       }
@@ -833,7 +892,8 @@ itcl::class picoADC {
           if {[lsearch $adc_ach $vch] >=0 } {
             error "duplicated channel $vch in $c"}
 
-          lappend adc_ach "$vch"
+          lappend adc_ach $vch
+          lappend valnames $vch
           set range($vch) $vrng
           set single($vch) [expr {"$vsd"=="s"? 1:0}]
 
@@ -894,6 +954,7 @@ itcl::class leak_ag_vs {
 
   constructor {d ch id} {
     # channels are not supported now
+    set valnames [list "Leak" "Pout" "Pin"]
     set dev $d
   }
 
