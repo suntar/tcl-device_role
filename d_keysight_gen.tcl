@@ -24,7 +24,8 @@ itcl::class keysight_gen {
       33509B -
       33511B -
       33520A -
-      33220A { set nch 1 }
+      33220A -
+      33221A { set nch 1 }
       33510B -
       33522A { set nch 2 }
       default { error "keysight_gen::get_nch: unknown model: $model" }
@@ -51,6 +52,7 @@ itcl::class keysight_gen {
     if {[regexp {,33511B,} $id]} {return {33511B}}
     if {[regexp {,33520A,} $id]} {return {33520A}}
     if {[regexp {,33520A,} $id]} {return {33220A}}
+    if {[regexp {,33521A,} $id]} {return {33221A}}
     # 2-channel
     if {[regexp {,33510B,} $id]} {return {33510B}}
     if {[regexp {,33522A,} $id]} {return {33522A}}
