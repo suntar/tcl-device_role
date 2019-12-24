@@ -14,6 +14,7 @@ lappend _files "$dir/r_dc_source.tcl"
 lappend _files "$dir/r_burst_source.tcl"
 lappend _files "$dir/r_power_supply.tcl"
 lappend _files "$dir/r_gauge.tcl"
+lappend _files "$dir/r_dgen.tcl"
 
 set _pcmd {}
 foreach _f $_files { lappend _pcmd "source $_f" }

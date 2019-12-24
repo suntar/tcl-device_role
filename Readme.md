@@ -155,6 +155,13 @@ follow the current channel.
 * TEST
 
 ---
+#### dgen -- double AC voltage source
+
+It is a special role used for making excitation+compensation signals
+by 2-channel generators. It consists of two ac_source devices
+with a single frequency setting.
+
+---
 #### noise_source -- noise source
 
 Parameters and commands (see `noise_source.tcl`):
