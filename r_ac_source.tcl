@@ -130,7 +130,11 @@ itcl::class keysight {
   }
   method set_freq {v}  { set_par "${sour_pref}FREQ" $v }
   method set_offs {v}  { set_par "${sour_pref}VOLT:OFFS" $v }
-  method set_phase {v} { set_par "${sour_pref}PHAS" $v }
+
+  method set_phase {v} {
+    set v [expr $v-int($v/360.0)*360]
+    set_par "${sour_pref}PHAS" $v
+  }
 
   method set_sync {state} {
     if {$chan != {}} {
