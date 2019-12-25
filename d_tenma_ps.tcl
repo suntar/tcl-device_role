@@ -57,7 +57,7 @@ itcl::class tenma_ps {
     set min_v 0.0
     set min_i_step 0.001
     set min_v_step 0.01
-    set i_prec 0.01
+    set i_prec 0.02
   }
 
   method set_volt {val} {
