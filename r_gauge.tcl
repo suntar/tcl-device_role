@@ -270,7 +270,7 @@ itcl::class keysight_mplex {
             lappend valnames $n1
           }\
           elseif {[regexp {^ *([0-9]+):([0-9]+) *$} $c v0 n1 n2]} {
-            if {$n2<=$n1} {error "non-increasing channel range: $c"
+            if {$n2<=$n1} {error "non-increasing channel range: $c"}
             for {set n $n1} {$n<=$n2} {incr n} {
               lappend valnames $n
             }
