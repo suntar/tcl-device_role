@@ -138,7 +138,7 @@ itcl::class keysight {
       }
     }
     set dev $d
-    set valnames $chan
+    set valnames $ch
     $dev cmd $cmd
   }
 
