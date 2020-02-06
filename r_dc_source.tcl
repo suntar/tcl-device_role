@@ -288,8 +288,8 @@ itcl::class sm2400 {
   variable chan;  # channel to use (1..2)
   constructor {d ch id} {
     switch -exact -- $ch {
-      DCV {  set cmd ":sour:func volt"; set cmd "sour:volt:range:auto 1" }
-      DCI {  set cmd ":sour:func curr"; set cmd "sour:curr:range:auto 1" }
+      DCV {  set cmd ":sour:func volt"; set cmd "sour:volt:range:auto on" }
+      DCI {  set cmd ":sour:func curr"; set cmd "sour:curr:range:auto on" }
       default {
         error "$this: bad channel setting: $ch"
         return
